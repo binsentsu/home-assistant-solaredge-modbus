@@ -1,5 +1,3 @@
-DOMAIN = "solaredge_modbus"
-
 SENSOR_TYPES = {
     "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac", None],
     "AC_CurrentA": ["AC Current A", "accurrenta", "A", "mdi:current-ac", None],

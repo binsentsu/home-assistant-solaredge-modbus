@@ -5,9 +5,10 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.constants import Endian
+from homeassistant.util import Throttle
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
-from .const import SENSOR_TYPES, DOMAIN
+from .const import SENSOR_TYPES
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import (
     CONF_HOST,
@@ -17,6 +18,8 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_START,
     EVENT_HOMEASSISTANT_STOP,
 )
+
+DOMAIN = "solaredge_modbus"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +36,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     }
 )
 
-#TODO: make filtering of sensors possible through config.
+
+# TODO: make filtering of sensors possible through config.
 def setup_platform(hass, config, add_entities, discovery_info=None):
     host = config[CONF_HOST]
     port = config[CONF_PORT]
@@ -103,7 +107,8 @@ class SolarEdgeSensor(Entity):
 
     def update(self):
         """Get the latest data from the sensor and update the state."""
-        if self._hub.update():
+        self._hub.update()
+        if self._key in self._hub.data:
             self._state = self._hub.data[self._key]
 
 
@@ -152,119 +157,118 @@ class SolaredgeModbusHub:
             kwargs = {"unit": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
+    @Throttle(UPDATE_DELAY)
     def update(self):
-        if not self._client.is_socket_open(): return False
+        inverter_data = self.read_holding_registers(unit=1, address=40071, count=38)
+        if not inverter_data.isError():
+            decoder = BinaryPayloadDecoder.fromRegisters(inverter_data.registers, byteorder=Endian.Big)
+            accurrent = decoder.decode_16bit_uint()
+            accurrenta = decoder.decode_16bit_uint()
+            accurrentb = decoder.decode_16bit_uint()
+            accurrentc = decoder.decode_16bit_uint()
+            accurrentsf = decoder.decode_16bit_int()
 
-        inverter_data = self._client.read_holding_registers(address=40071, count=38, unit=1)
-        decoder = BinaryPayloadDecoder.fromRegisters(inverter_data.registers, byteorder=Endian.Big)
-        accurrent = decoder.decode_16bit_uint()
-        accurrenta = decoder.decode_16bit_uint()
-        accurrentb = decoder.decode_16bit_uint()
-        accurrentc = decoder.decode_16bit_uint()
-        accurrentsf = decoder.decode_16bit_int()
+            accurrent = calculate_value(accurrent, accurrentsf)
+            accurrenta = calculate_value(accurrenta, accurrentsf)
+            accurrentb = calculate_value(accurrentb, accurrentsf)
+            accurrentc = calculate_value(accurrentc, accurrentsf)
 
-        accurrent = calculate_value(accurrent, accurrentsf)
-        accurrenta = calculate_value(accurrenta, accurrentsf)
-        accurrentb = calculate_value(accurrentb, accurrentsf)
-        accurrentc = calculate_value(accurrentc, accurrentsf)
+            self.data["accurrent"] = round(accurrent, abs(accurrentsf))
+            self.data["accurrenta"] = round(accurrenta, abs(accurrentsf))
+            self.data["accurrentb"] = round(accurrentb, abs(accurrentsf))
+            self.data["accurrentc"] = round(accurrentc, abs(accurrentsf))
 
-        self.data["accurrent"] = round(accurrent, abs(accurrentsf))
-        self.data["accurrenta"] = round(accurrenta, abs(accurrentsf))
-        self.data["accurrentb"] = round(accurrentb, abs(accurrentsf))
-        self.data["accurrentc"] = round(accurrentc, abs(accurrentsf))
+            acvoltageab = decoder.decode_16bit_uint()
+            acvoltagebc = decoder.decode_16bit_uint()
+            acvoltageca = decoder.decode_16bit_uint()
+            acvoltagean = decoder.decode_16bit_uint()
+            acvoltagebn = decoder.decode_16bit_uint()
+            acvoltagecn = decoder.decode_16bit_uint()
+            acvoltagesf = decoder.decode_16bit_int()
 
-        acvoltageab = decoder.decode_16bit_uint()
-        acvoltagebc = decoder.decode_16bit_uint()
-        acvoltageca = decoder.decode_16bit_uint()
-        acvoltagean = decoder.decode_16bit_uint()
-        acvoltagebn = decoder.decode_16bit_uint()
-        acvoltagecn = decoder.decode_16bit_uint()
-        acvoltagesf = decoder.decode_16bit_int()
+            acvoltageab = calculate_value(acvoltageab, acvoltagesf)
+            acvoltagebc = calculate_value(acvoltagebc, acvoltagesf)
+            acvoltageca = calculate_value(acvoltageca, acvoltagesf)
+            acvoltagean = calculate_value(acvoltagean, acvoltagesf)
+            acvoltagebn = calculate_value(acvoltagebn, acvoltagesf)
+            acvoltagecn = calculate_value(acvoltagecn, acvoltagesf)
 
-        acvoltageab = calculate_value(acvoltageab, acvoltagesf)
-        acvoltagebc = calculate_value(acvoltagebc, acvoltagesf)
-        acvoltageca = calculate_value(acvoltageca, acvoltagesf)
-        acvoltagean = calculate_value(acvoltagean, acvoltagesf)
-        acvoltagebn = calculate_value(acvoltagebn, acvoltagesf)
-        acvoltagecn = calculate_value(acvoltagecn, acvoltagesf)
+            self.data["acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
+            self.data["acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
+            self.data["acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
+            self.data["acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
+            self.data["acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
+            self.data["acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
 
-        self.data["acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
-        self.data["acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
-        self.data["acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
-        self.data["acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
-        self.data["acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
-        self.data["acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
+            acpower = decoder.decode_16bit_int()
+            acpowersf = decoder.decode_16bit_int()
+            acpower = calculate_value(acpower, acpowersf)
 
-        acpower = decoder.decode_16bit_int()
-        acpowersf = decoder.decode_16bit_int()
-        acpower = calculate_value(acpower, acpowersf)
+            self.data["acpower"] = round(acpower, abs(acpowersf))
 
-        self.data["acpower"] = round(acpower, abs(acpowersf))
+            acfreq = decoder.decode_16bit_uint()
+            acfreqsf = decoder.decode_16bit_int()
+            acfreq = calculate_value(acfreq, acfreqsf)
 
-        acfreq = decoder.decode_16bit_uint()
-        acfreqsf = decoder.decode_16bit_int()
-        acfreq = calculate_value(acfreq, acfreqsf)
+            self.data["acfreq"] = round(acfreq, abs(acfreqsf))
 
-        self.data["acfreq"] = round(acfreq, abs(acfreqsf))
+            acva = decoder.decode_16bit_int()
+            acvasf = decoder.decode_16bit_int()
+            acva = calculate_value(acva, acvasf)
 
-        acva = decoder.decode_16bit_int()
-        acvasf = decoder.decode_16bit_int()
-        acva = calculate_value(acva, acvasf)
+            self.data["acva"] = round(acva, abs(acvasf))
 
-        self.data["acva"] = round(acva, abs(acvasf))
+            acvar = decoder.decode_16bit_int()
+            acvarsf = decoder.decode_16bit_int()
+            acvar = calculate_value(acvar, acvarsf)
 
-        acvar = decoder.decode_16bit_int()
-        acvarsf = decoder.decode_16bit_int()
-        acvar = calculate_value(acvar, acvarsf)
+            self.data["acvar"] = round(acvar, abs(acvarsf))
 
-        self.data["acvar"] = round(acvar, abs(acvarsf))
+            acpf = decoder.decode_16bit_int()
+            acpfsf = decoder.decode_16bit_int()
+            acpf = calculate_value(acpf, acpfsf)
 
-        acpf = decoder.decode_16bit_int()
-        acpfsf = decoder.decode_16bit_int()
-        acpf = calculate_value(acpf, acpfsf)
+            self.data["acpf"] = round(acpf, abs(acpfsf))
 
-        self.data["acpf"] = round(acpf, abs(acpfsf))
+            acenergy = decoder.decode_32bit_uint()
+            acenergysf = decoder.decode_16bit_uint()
+            acenergy = calculate_value(acenergy, acenergysf)
 
-        acenergy = decoder.decode_32bit_uint()
-        acenergysf = decoder.decode_16bit_uint()
-        acenergy = calculate_value(acenergy, acenergysf)
+            self.data["acenergy"] = round(acenergy * 0.001, 3)
 
-        self.data["acenergy"] = round(acenergy * 0.001, 3)
+            dccurrent = decoder.decode_16bit_uint()
+            dccurrentsf = decoder.decode_16bit_int()
+            dccurrent = calculate_value(dccurrent, dccurrentsf)
 
-        dccurrent = decoder.decode_16bit_uint()
-        dccurrentsf = decoder.decode_16bit_int()
-        dccurrent = calculate_value(dccurrent, dccurrentsf)
+            self.data["dccurrent"] = round(dccurrent, abs(dccurrentsf))
 
-        self.data["dccurrent"] = round(dccurrent, abs(dccurrentsf))
+            dcvoltage = decoder.decode_16bit_uint()
+            dcvoltagesf = decoder.decode_16bit_int()
+            dcvoltage = calculate_value(dcvoltage, dcvoltagesf)
 
-        dcvoltage = decoder.decode_16bit_uint()
-        dcvoltagesf = decoder.decode_16bit_int()
-        dcvoltage = calculate_value(dcvoltage, dcvoltagesf)
+            self.data["dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
 
-        self.data["dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
+            dcpower = decoder.decode_16bit_int()
+            dcpowersf = decoder.decode_16bit_int()
+            dcpower = calculate_value(dcpower, dcpowersf)
 
-        dcpower = decoder.decode_16bit_int()
-        dcpowersf = decoder.decode_16bit_int()
-        dcpower = calculate_value(dcpower, dcpowersf)
+            self.data["dcpower"] = round(dcpower, abs(dcpowersf))
 
-        self.data["dcpower"] = round(dcpower, abs(dcpowersf))
+            # skip register
+            decoder.skip_bytes(2)
 
-        # skip register
-        decoder.skip_bytes(2)
+            tempsink = decoder.decode_16bit_int()
 
-        tempsink = decoder.decode_16bit_int()
+            # skip 2 registers
+            decoder.skip_bytes(4)
 
-        # skip 2 registers
-        decoder.skip_bytes(4)
+            tempsf = decoder.decode_16bit_int()
+            tempsink = calculate_value(tempsink, tempsf)
 
-        tempsf = decoder.decode_16bit_int()
-        tempsink = calculate_value(tempsink, tempsf)
+            self.data["tempsink"] = round(tempsink, abs(tempsf))
 
-        self.data["tempsink"] = round(tempsink, abs(tempsf))
+            status = decoder.decode_16bit_int()
+            self.data["status"] = status
+            statusvendor = decoder.decode_16bit_int()
+            self.data["statusvendor"] = statusvendor
 
-        status = decoder.decode_16bit_int()
-        self.data["status"] = status
-        statusvendor = decoder.decode_16bit_int()
-        self.data["statusvendor"] = statusvendor
-
-        return True
