@@ -1,0 +1,7 @@
+{
+  "domain": "solaredge_modbus",
+  "name": "SolarEdge Modbus",
+   "requirements": ["pymodbus==1.5.2"],
+  "dependencies": [],
+  "codeowners": ["@binsentsu"]
+}
