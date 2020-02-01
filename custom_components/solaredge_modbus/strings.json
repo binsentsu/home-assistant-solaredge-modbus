@@ -8,7 +8,6 @@
           "host": "The ip-address of your Solaredge device",
           "name": "The prefix to be used for your SolarEdge sensors",
           "port": "The TCP port on which to connect to the SolarEdge",
-          "timeout": "The connection timeout",
           "scan_interval": "The polling frequentie of the modbus registers in seconds"
         }
       }

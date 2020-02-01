@@ -12,11 +12,11 @@ from pymodbus.payload import BinaryPayloadDecoder
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_TIMEOUT, CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
-from .const import DOMAIN, DEFAULT_NAME, DEFAULT_TIMEOUT, DEFAULT_SCAN_INTERVAL
+from .const import DOMAIN, DEFAULT_NAME, DEFAULT_SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +25,6 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_PORT): cv.string,
-        vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.positive_int
     }
 )
@@ -48,12 +47,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     host = entry.data[CONF_HOST]
     name = entry.data[CONF_NAME]
     port = entry.data[CONF_PORT]
-    timeout = entry.data[CONF_TIMEOUT]
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
-    hub = SolaredgeModbusHub(hass, name, host, port, timeout, scan_interval)
+    hub = SolaredgeModbusHub(hass, name, host, port, scan_interval)
     """Register the hub."""
     hass.data[DOMAIN][name] = {
         "hub": hub
@@ -86,7 +84,7 @@ async def async_unload_entry(hass, entry):
 class SolaredgeModbusHub:
     """Thread safe wrapper class for pymodbus."""
 
-    def __init__(self, hass, name, host, port, timeout, scan_interval):
+    def __init__(self, hass, name, host, port, scan_interval):
         """Initialize the Modbus hub."""
         self._hass = hass
         self._client = ModbusTcpClient(host=host, port=port)

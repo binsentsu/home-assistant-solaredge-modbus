@@ -4,8 +4,8 @@ import re
 import voluptuous as vol
 
 from homeassistant import config_entries, exceptions
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_TIMEOUT, CONF_SCAN_INTERVAL
-from .const import DOMAIN, DEFAULT_NAME, DEFAULT_TIMEOUT, DEFAULT_SCAN_INTERVAL, DEFAULT_PORT
+from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
+from .const import DOMAIN, DEFAULT_NAME, DEFAULT_SCAN_INTERVAL, DEFAULT_PORT
 from homeassistant.core import HomeAssistant, callback
 
 DATA_SCHEMA = vol.Schema(
@@ -13,7 +13,6 @@ DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
-        vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): int,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int
     }
 )

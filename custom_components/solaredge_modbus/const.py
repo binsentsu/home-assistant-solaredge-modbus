@@ -1,6 +1,5 @@
 DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
-DEFAULT_TIMEOUT = 3
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_PORT = 1502
 CONF_SOLAREDGE_HUB = "solaredge_hub"
