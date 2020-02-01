@@ -1,0 +1,9 @@
+{
+  "name": "Solaredge Modbus",
+  "content_in_root": false,
+  "zip_release": true,
+  "filename": "solaredge_modbus.zip",
+  "domains": ["sensor"],
+  "homeassistant": "0.101.0",
+  "iot_class": "local_poll"
+}
