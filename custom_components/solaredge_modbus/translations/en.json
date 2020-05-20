@@ -5,9 +5,9 @@
       "user": {
         "title": "Define your SolarEdge modbus connection",
         "data": {
-          "host": "The ip-address of your Solaredge device",
+          "host": "The ip-address of your Solaredge inverter",
           "name": "The prefix to be used for your SolarEdge sensors",
-          "port": "The TCP port on which to connect to the SolarEdge",
+          "port": "The TCP port on which to connect to the SolarEdge inverter",
           "timeout": "The connection timeout",
           "scan_interval": "The polling frequentie of the modbus registers in seconds"
         }
