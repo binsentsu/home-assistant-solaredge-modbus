@@ -2,9 +2,11 @@ DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_PORT = 1502
+DEFAULT_READ_METER1 = False
 CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
+CONF_READ_METER1 = "read_meter_1"
 
 SENSOR_TYPES = {
     "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac"],
@@ -28,7 +30,72 @@ SENSOR_TYPES = {
     "DC_Power": ["DC Power", "dcpower", "W", "mdi:solar-power"],
     "Temp_Sink": ["Temp Sink", "tempsink", "°C", None],
     "Status": ["Status", "status", None, None],
-    "Status_Vendor": ["Status Vendor", "statusvendor", None, None]
+    "Status_Vendor": ["Status Vendor", "statusvendor", None, None],
+}
+
+
+METER_SENSOR_TYPES = {
+    "M1_AC_Current": ["M1 AC Current", "m1_accurrent", "A", "mdi:current-ac"],
+    "M1_AC_Current_A": ["M1 AC Current_A", "m1_accurrenta", "A", "mdi:current-ac"],
+    "M1_AC_Current_B": ["M1 AC Current_B", "m1_accurrentb", "A", "mdi:current-ac"],
+    "M1_AC_Current_C": ["M1 AC Current_C", "m1_accurrentc", "A", "mdi:current-ac"],
+    "M1_AC_Voltage_LN": ["M1 AC Voltage LN", "m1_acvoltageln", "V", None],
+    "M1_AC_Voltage_AN": ["M1 AC Voltage AN", "m1_acvoltagean", "V", None],
+    "M1_AC_Voltage_BN": ["M1 AC Voltage BN", "m1_acvoltagebn", "V", None],
+    "M1_AC_Voltage_CN": ["M1 AC Voltage CN", "m1_acvoltagecn", "V", None],
+    "M1_AC_Voltage_LL": ["M1 AC Voltage LL", "m1_acvoltagell", "V", None],
+    "M1_AC_Voltage_AB": ["M1 AC Voltage AB", "m1_acvoltageab", "V", None],
+    "M1_AC_Voltage_BC": ["M1 AC Voltage BC", "m1_acvoltagebc", "V", None],
+    "M1_AC_Voltage_CA": ["M1 AC Voltage CA", "m1_acvoltageca", "V", None],
+    "M1_AC_Frequency": ["M1 AC Frequency", "m1_acfreq", "Hz", None],
+    "M1_AC_Power": ["M1 AC Power", "m1_acpower", "W", None],
+    "M1_AC_Power_A": ["M1 AC Power A", "m1_acpowera", "W", None],
+    "M1_AC_Power_B": ["M1 AC Power B", "m1_acpowerb", "W", None],
+    "M1_AC_Power_C": ["M1 AC Power C", "m1_acpowerc", "W", None],
+    "M1_AC_VA": ["M1 AC VA", "m1_acva", "VA", None],
+    "M1_AC_VA_A": ["M1 AC VA A", "m1_acvaa", "VA", None],
+    "M1_AC_VA_B": ["M1 AC VA B", "m1_acvab", "VA", None],
+    "M1_AC_VA_C": ["M1 AC VA C", "m1_acvac", "VA", None],
+    "M1_AC_VAR": ["M1 AC VAR", "m1_acvar", "VAR", None],
+    "M1_AC_VAR_A": ["M1 AC VAR A", "m1_acvara", "VAR", None],
+    "M1_AC_VAR_B": ["M1 AC VAR B", "m1_acvarb", "VAR", None],
+    "M1_AC_VAR_C": ["M1 AC VAR C", "m1_acvarc", "VAR", None],
+    "M1_AC_PF": ["M1 AC PF", "m1_acpf", "%", None],
+    "M1_AC_PF_A": ["M1 AC PF A", "m1_acpfa", "%", None],
+    "M1_AC_PF_B": ["M1 AC PF B", "m1_acpfb", "%", None],
+    "M1_AC_PF_C": ["M1 AC PF C", "m1_acpfc", "%", None],
+    "M1_EXPORTED_KWH": ["M1 EXPORTED KWH", "m1_exported", "kWh", None],
+    "M1_EXPORTED_A_KWH": ["M1 EXPORTED A KWH", "m1_exporteda", "kWh", None],
+    "M1_EXPORTED_B_KWH": ["M1 EXPORTED B KWH", "m1_exportedb", "kWh", None],
+    "M1_EXPORTED_C_KWH": ["M1 EXPORTED C KWH", "m1_exportedc", "kWh", None],
+    "M1_IMPORTED_KWH": ["M1 IMPORTED KWH", "m1_imported", "kWh", None],
+    "M1_IMPORTED_KWH_A": ["M1 IMPORTED A KWH", "m1_importeda", "kWh", None],
+    "M1_IMPORTED_KWH_B": ["M1 IMPORTED B KWH", "m1_importedb", "kWh", None],
+    "M1_IMPORTED_KWH_C": ["M1 IMPORTED C KWH", "m1_importedc", "kWh", None],
+    "M1_EXPORTED_VA": ["M1 EXPORTED VAh", "m1_exportedva", "VAh", None],
+    "M1_EXPORTED_VA_A": ["M1 EXPORTED A VAh", "m1_exportedvaa", "VAh", None],
+    "M1_EXPORTED_VA_B": ["M1 EXPORTED B VAh", "m1_exportedvab", "VAh", None],
+    "M1_EXPORTED_VA_C": ["M1 EXPORTED C VAh", "m1_exportedvac", "VAh", None],
+    "M1_IMPORTED_VA": ["M1 IMPORTED VAh", "m1_importedva", "VAh", None],
+    "M1_IMPORTED_VA_A": ["M1 IMPORTED A VAh", "m1_importedvaa", "VAh", None],
+    "M1_IMPORTED_VA_B": ["M1 IMPORTED B VAh", "m1_importedvab", "VAh", None],
+    "M1_IMPORTED_VA_C": ["M1 IMPORTED C VAh", "m1_importedvac", "VAh", None],
+    "M1_IMPORT_VARH_Q1": ["M1 IMPORT VARH Q1", "m1_importvarhq1", "VARh", None],
+    "M1_IMPORT_VARH_Q1_A": ["M1 IMPORT VARH Q1 A", "m1_importvarhq1a", "VARh", None],
+    "M1_IMPORT_VARH_Q1_B": ["M1 IMPORT VARH Q1 B", "m1_importvarhq1b", "VARh", None],
+    "M1_IMPORT_VARH_Q1_C": ["M1 IMPORT VARH Q1 C", "m1_importvarhq1c", "VARh", None],
+    "M1_IMPORT_VARH_Q2": ["M1 IMPORT VARH Q2", "m1_importvarhq2", "VARh", None],
+    "M1_IMPORT_VARH_Q2_A": ["M1 IMPORT VARH Q2 A", "m1_importvarhq2a", "VARh", None],
+    "M1_IMPORT_VARH_Q2_B": ["M1 IMPORT VARH Q2 B", "m1_importvarhq2b", "VARh", None],
+    "M1_IMPORT_VARH_Q2_C": ["M1 IMPORT VARH Q2 C", "m1_importvarhq2c", "VARh", None],
+    "M1_IMPORT_VARH_Q3": ["M1 IMPORT VARH Q3", "m1_importvarhq3", "VARh", None],
+    "M1_IMPORT_VARH_Q3_A": ["M1 IMPORT VARH Q3 A", "m1_importvarhq3a", "VARh", None],
+    "M1_IMPORT_VARH_Q3_B": ["M1 IMPORT VARH Q3 B", "m1_importvarhq3b", "VARh", None],
+    "M1_IMPORT_VARH_Q3_C": ["M1 IMPORT VARH Q3 C", "m1_importvarhq3c", "VARh", None],
+    "M1_IMPORT_VARH_Q4": ["M1 IMPORT VARH Q4", "m1_importvarhq4", "VARh", None],
+    "M1_IMPORT_VARH_Q4_A": ["M1 IMPORT VARH Q4 A", "m1_importvarhq4a", "VARh", None],
+    "M1_IMPORT_VARH_Q4_B": ["M1 IMPORT VARH Q4 B", "m1_importvarhq4b", "VARh", None],
+    "M1_IMPORT_VARH_Q4_C": ["M1 IMPORT VARH Q4 C", "m1_importvarhq4c", "VARh", None],
 }
 
 DEVICE_STATUSSES = {
@@ -39,5 +106,5 @@ DEVICE_STATUSSES = {
     5: "Production (curtailed)",
     6: "Shutting down",
     7: "Fault",
-    8: "Maintenance/setup"
+    8: "Maintenance/setup",
 }

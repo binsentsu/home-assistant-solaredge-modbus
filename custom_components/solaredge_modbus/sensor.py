@@ -1,6 +1,13 @@
 import logging
 from typing import Optional, Dict, Any
-from .const import SENSOR_TYPES, DOMAIN, ATTR_STATUS_DESCRIPTION, DEVICE_STATUSSES, ATTR_MANUFACTURER
+from .const import (
+    SENSOR_TYPES,
+    METER_SENSOR_TYPES,
+    DOMAIN,
+    ATTR_STATUS_DESCRIPTION,
+    DEVICE_STATUSSES,
+    ATTR_MANUFACTURER,
+)
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
@@ -15,7 +22,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     device_info = {
         "identifiers": {(DOMAIN, hub_name)},
         "name": hub_name,
-        "manufacturer": ATTR_MANUFACTURER
+        "manufacturer": ATTR_MANUFACTURER,
     }
 
     entities = []
@@ -30,6 +37,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
             sensor_info[3],
         )
         entities.append(sensor)
+
+    if hub.read_meter1 == True:
+        for meter_sensor_info in METER_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                meter_sensor_info[0],
+                meter_sensor_info[1],
+                meter_sensor_info[2],
+                meter_sensor_info[3],
+            )
+            entities.append(sensor)
     async_add_entities(entities)
     return True
 

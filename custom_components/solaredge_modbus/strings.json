@@ -8,6 +8,7 @@
           "host": "The ip-address of your Solaredge device",
           "name": "The prefix to be used for your SolarEdge sensors",
           "port": "The TCP port on which to connect to the SolarEdge",
+          "read_meter_1": "Read meter 1 data (only for meter models)",
           "scan_interval": "The polling frequentie of the modbus registers in seconds"
         }
       }
