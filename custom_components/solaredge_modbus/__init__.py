@@ -57,7 +57,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     name = entry.data[CONF_NAME]
     port = entry.data[CONF_PORT]
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
-    read_meter1 = entry.data[CONF_READ_METER1]
+    read_meter1 = entry.data.get(CONF_READ_METER1, False)
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
