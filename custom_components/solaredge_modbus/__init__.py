@@ -341,10 +341,10 @@ class SolaredgeModbusHub:
             decoder = BinaryPayloadDecoder.fromRegisters(
                 meter_data.registers, byteorder=Endian.Big
             )
-            accurrent = decoder.decode_16bit_uint()
-            accurrenta = decoder.decode_16bit_uint()
-            accurrentb = decoder.decode_16bit_uint()
-            accurrentc = decoder.decode_16bit_uint()
+            accurrent = decoder.decode_16bit_int()
+            accurrenta = decoder.decode_16bit_int()
+            accurrentb = decoder.decode_16bit_int()
+            accurrentc = decoder.decode_16bit_int()
             accurrentsf = decoder.decode_16bit_int()
 
             accurrent = self.calculate_value(accurrent, accurrentsf)
@@ -357,14 +357,14 @@ class SolaredgeModbusHub:
             self.data[meter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
             self.data[meter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
 
-            acvoltageln = decoder.decode_16bit_uint()
-            acvoltagean = decoder.decode_16bit_uint()
-            acvoltagebn = decoder.decode_16bit_uint()
-            acvoltagecn = decoder.decode_16bit_uint()
-            acvoltagell = decoder.decode_16bit_uint()
-            acvoltageab = decoder.decode_16bit_uint()
-            acvoltagebc = decoder.decode_16bit_uint()
-            acvoltageca = decoder.decode_16bit_uint()
+            acvoltageln = decoder.decode_16bit_int()
+            acvoltagean = decoder.decode_16bit_int()
+            acvoltagebn = decoder.decode_16bit_int()
+            acvoltagecn = decoder.decode_16bit_int()
+            acvoltagell = decoder.decode_16bit_int()
+            acvoltageab = decoder.decode_16bit_int()
+            acvoltagebc = decoder.decode_16bit_int()
+            acvoltageca = decoder.decode_16bit_int()
             acvoltagesf = decoder.decode_16bit_int()
 
             acvoltageln = self.calculate_value(acvoltageln, acvoltagesf)
@@ -401,17 +401,17 @@ class SolaredgeModbusHub:
                 acvoltageca, abs(acvoltagesf)
             )
 
-            acfreq = decoder.decode_16bit_uint()
+            acfreq = decoder.decode_16bit_int()
             acfreqsf = decoder.decode_16bit_int()
 
             acfreq = self.calculate_value(acfreq, acfreqsf)
 
             self.data[meter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
 
-            acpower = decoder.decode_16bit_uint()
-            acpowera = decoder.decode_16bit_uint()
-            acpowerb = decoder.decode_16bit_uint()
-            acpowerc = decoder.decode_16bit_uint()
+            acpower = decoder.decode_16bit_int()
+            acpowera = decoder.decode_16bit_int()
+            acpowerb = decoder.decode_16bit_int()
+            acpowerc = decoder.decode_16bit_int()
             acpowersf = decoder.decode_16bit_int()
 
             acpower = self.calculate_value(acpower, acpowersf)
@@ -424,10 +424,10 @@ class SolaredgeModbusHub:
             self.data[meter_prefix + "acpowerb"] = round(acpowerb, abs(acpowersf))
             self.data[meter_prefix + "acpowerc"] = round(acpowerc, abs(acpowersf))
 
-            acva = decoder.decode_16bit_uint()
-            acvaa = decoder.decode_16bit_uint()
-            acvab = decoder.decode_16bit_uint()
-            acvac = decoder.decode_16bit_uint()
+            acva = decoder.decode_16bit_int()
+            acvaa = decoder.decode_16bit_int()
+            acvab = decoder.decode_16bit_int()
+            acvac = decoder.decode_16bit_int()
             acvasf = decoder.decode_16bit_int()
 
             acva = self.calculate_value(acva, acvasf)
@@ -440,10 +440,10 @@ class SolaredgeModbusHub:
             self.data[meter_prefix + "acvab"] = round(acvab, abs(acvasf))
             self.data[meter_prefix + "acvac"] = round(acvac, abs(acvasf))
 
-            acvar = decoder.decode_16bit_uint()
-            acvara = decoder.decode_16bit_uint()
-            acvarb = decoder.decode_16bit_uint()
-            acvarc = decoder.decode_16bit_uint()
+            acvar = decoder.decode_16bit_int()
+            acvara = decoder.decode_16bit_int()
+            acvarb = decoder.decode_16bit_int()
+            acvarc = decoder.decode_16bit_int()
             acvarsf = decoder.decode_16bit_int()
 
             acvar = self.calculate_value(acvar, acvarsf)
@@ -456,10 +456,10 @@ class SolaredgeModbusHub:
             self.data[meter_prefix + "acvarb"] = round(acvarb, abs(acvarsf))
             self.data[meter_prefix + "acvarc"] = round(acvarc, abs(acvarsf))
 
-            acpf = decoder.decode_16bit_uint()
-            acpfa = decoder.decode_16bit_uint()
-            acpfb = decoder.decode_16bit_uint()
-            acpfc = decoder.decode_16bit_uint()
+            acpf = decoder.decode_16bit_int()
+            acpfa = decoder.decode_16bit_int()
+            acpfb = decoder.decode_16bit_int()
+            acpfc = decoder.decode_16bit_int()
             acpfsf = decoder.decode_16bit_int()
 
             acpf = self.calculate_value(acpf, acpfsf)
