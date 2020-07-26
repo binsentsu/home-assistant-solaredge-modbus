@@ -21,7 +21,11 @@ from .const import (
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     CONF_READ_METER1,
+    CONF_READ_METER2,
+    CONF_READ_METER3,
     DEFAULT_READ_METER1,
+    DEFAULT_READ_METER2,
+    DEFAULT_READ_METER3,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,6 +36,8 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_PORT): cv.string,
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): cv.boolean,
+        vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): cv.boolean,
+        vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,
         vol.Optional(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): cv.positive_int,
@@ -58,10 +64,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     port = entry.data[CONF_PORT]
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
+    read_meter2 = entry.data.get(CONF_READ_METER2, False)
+    read_meter3 = entry.data.get(CONF_READ_METER3, False)
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
-    hub = SolaredgeModbusHub(hass, name, host, port, scan_interval, read_meter1)
+    hub = SolaredgeModbusHub(
+        hass, name, host, port, scan_interval, read_meter1, read_meter2, read_meter3
+    )
     """Register the hub."""
     hass.data[DOMAIN][name] = {"hub": hub}
 
@@ -92,13 +102,25 @@ async def async_unload_entry(hass, entry):
 class SolaredgeModbusHub:
     """Thread safe wrapper class for pymodbus."""
 
-    def __init__(self, hass, name, host, port, scan_interval, read_meter1=False):
+    def __init__(
+        self,
+        hass,
+        name,
+        host,
+        port,
+        scan_interval,
+        read_meter1=False,
+        read_meter2=False,
+        read_meter3=False,
+    ):
         """Initialize the Modbus hub."""
         self._hass = hass
         self._client = ModbusTcpClient(host=host, port=port)
         self._lock = threading.Lock()
         self._name = name
         self.read_meter1 = read_meter1
+        self.read_meter2 = read_meter2
+        self.read_meter3 = read_meter3
         self._scan_interval = timedelta(seconds=scan_interval)
         self._unsub_interval_method = None
         self._sensors = []
@@ -166,6 +188,16 @@ class SolaredgeModbusHub:
         return (
             self.read_modbus_data_inverter_stub()
             and self.read_modbus_data_meter1_stub()
+            and self.read_modbus_data_meter2_stub()
+            and self.read_modbus_data_meter3_stub()
+        )
+
+    def read_modbus_data(self):
+        return (
+            self.read_modbus_data_inverter()
+            and self.read_modbus_data_meter1()
+            and self.read_modbus_data_meter2()
+            and self.read_modbus_data_meter3()
         )
 
     def read_modbus_data_inverter_stub(self):
@@ -195,97 +227,119 @@ class SolaredgeModbusHub:
         return True
 
     def read_modbus_data_meter1_stub(self):
-        self.data["m1_accurrent"] = 2
-        self.data["m1_accurrenta"] = 2
-        self.data["m1_accurrentb"] = 2
-        self.data["m1_accurrentc"] = 2
+        return self.read_modbus_data_meter_stub("m1_")
 
-        self.data["m1_acvoltageln"] = 2
-        self.data["m1_acvoltagean"] = 2
-        self.data["m1_acvoltagebn"] = 2
-        self.data["m1_acvoltagecn"] = 2
-        self.data["m1_acvoltagell"] = 2
-        self.data["m1_acvoltageab"] = 2
-        self.data["m1_acvoltagebc"] = 2
-        self.data["m1_acvoltageca"] = 2
+    def read_modbus_data_meter2_stub(self):
+        return self.read_modbus_data_meter_stub("m2_")
 
-        self.data["m1_acfreq"] = 2
+    def read_modbus_data_meter3_stub(self):
+        return self.read_modbus_data_meter_stub("m3_")
 
-        self.data["m1_acpower"] = 2
-        self.data["m1_acpowera"] = 2
-        self.data["m1_acpowerb"] = 2
-        self.data["m1_acpowerc"] = 2
+    def read_modbus_data_meter_stub(self, meter_prefix):
+        self.data[meter_prefix + "accurrent"] = 2
+        self.data[meter_prefix + "accurrenta"] = 2
+        self.data[meter_prefix + "accurrentb"] = 2
+        self.data[meter_prefix + "accurrentc"] = 2
 
-        self.data["m1_acva"] = 2
-        self.data["m1_acvaa"] = 2
-        self.data["m1_acvab"] = 2
-        self.data["m1_acvac"] = 2
+        self.data[meter_prefix + "acvoltageln"] = 2
+        self.data[meter_prefix + "acvoltagean"] = 2
+        self.data[meter_prefix + "acvoltagebn"] = 2
+        self.data[meter_prefix + "acvoltagecn"] = 2
+        self.data[meter_prefix + "acvoltagell"] = 2
+        self.data[meter_prefix + "acvoltageab"] = 2
+        self.data[meter_prefix + "acvoltagebc"] = 2
+        self.data[meter_prefix + "acvoltageca"] = 2
 
-        self.data["m1_acvar"] = 2
-        self.data["m1_acvara"] = 2
-        self.data["m1_acvarb"] = 2
-        self.data["m1_acvarc"] = 2
+        self.data[meter_prefix + "acfreq"] = 2
 
-        self.data["m1_acpf"] = 2
-        self.data["m1_acpfa"] = 2
-        self.data["m1_acpfb"] = 2
-        self.data["m1_acpfc"] = 2
+        self.data[meter_prefix + "acpower"] = 2
+        self.data[meter_prefix + "acpowera"] = 2
+        self.data[meter_prefix + "acpowerb"] = 2
+        self.data[meter_prefix + "acpowerc"] = 2
 
-        self.data["m1_exported"] = 2
-        self.data["m1_exporteda"] = 2
-        self.data["m1_exportedb"] = 2
-        self.data["m1_exportedc"] = 2
+        self.data[meter_prefix + "acva"] = 2
+        self.data[meter_prefix + "acvaa"] = 2
+        self.data[meter_prefix + "acvab"] = 2
+        self.data[meter_prefix + "acvac"] = 2
 
-        self.data["m1_imported"] = 2
-        self.data["m1_importeda"] = 2
-        self.data["m1_importedb"] = 2
-        self.data["m1_importedc"] = 2
+        self.data[meter_prefix + "acvar"] = 2
+        self.data[meter_prefix + "acvara"] = 2
+        self.data[meter_prefix + "acvarb"] = 2
+        self.data[meter_prefix + "acvarc"] = 2
 
-        self.data["m1_exportedva"] = 2
-        self.data["m1_exportedvaa"] = 2
-        self.data["m1_exportedvab"] = 2
-        self.data["m1_exportedvac"] = 2
+        self.data[meter_prefix + "acpf"] = 2
+        self.data[meter_prefix + "acpfa"] = 2
+        self.data[meter_prefix + "acpfb"] = 2
+        self.data[meter_prefix + "acpfc"] = 2
 
-        self.data["m1_importedva"] = 2
-        self.data["m1_importedvaa"] = 2
-        self.data["m1_importedvab"] = 2
-        self.data["m1_importedvac"] = 2
+        self.data[meter_prefix + "exported"] = 2
+        self.data[meter_prefix + "exporteda"] = 2
+        self.data[meter_prefix + "exportedb"] = 2
+        self.data[meter_prefix + "exportedc"] = 2
 
-        self.data["m1_importvarhq1"] = 2
-        self.data["m1_importvarhq1a"] = 2
-        self.data["m1_importvarhq1b"] = 2
-        self.data["m1_importvarhq1c"] = 2
+        self.data[meter_prefix + "imported"] = 2
+        self.data[meter_prefix + "importeda"] = 2
+        self.data[meter_prefix + "importedb"] = 2
+        self.data[meter_prefix + "importedc"] = 2
 
-        self.data["m1_importvarhq2"] = 2
-        self.data["m1_importvarhq2a"] = 2
-        self.data["m1_importvarhq2b"] = 2
-        self.data["m1_importvarhq2c"] = 2
+        self.data[meter_prefix + "exportedva"] = 2
+        self.data[meter_prefix + "exportedvaa"] = 2
+        self.data[meter_prefix + "exportedvab"] = 2
+        self.data[meter_prefix + "exportedvac"] = 2
 
-        self.data["m1_importvarhq3"] = 2
-        self.data["m1_importvarhq3a"] = 2
-        self.data["m1_importvarhq3b"] = 2
-        self.data["m1_importvarhq3c"] = 2
+        self.data[meter_prefix + "importedva"] = 2
+        self.data[meter_prefix + "importedvaa"] = 2
+        self.data[meter_prefix + "importedvab"] = 2
+        self.data[meter_prefix + "importedvac"] = 2
 
-        self.data["m1_importvarhq4"] = 2
-        self.data["m1_importvarhq4a"] = 2
-        self.data["m1_importvarhq4b"] = 2
-        self.data["m1_importvarhq4c"] = 2
+        self.data[meter_prefix + "importvarhq1"] = 2
+        self.data[meter_prefix + "importvarhq1a"] = 2
+        self.data[meter_prefix + "importvarhq1b"] = 2
+        self.data[meter_prefix + "importvarhq1c"] = 2
+
+        self.data[meter_prefix + "importvarhq2"] = 2
+        self.data[meter_prefix + "importvarhq2a"] = 2
+        self.data[meter_prefix + "importvarhq2b"] = 2
+        self.data[meter_prefix + "importvarhq2c"] = 2
+
+        self.data[meter_prefix + "importvarhq3"] = 2
+        self.data[meter_prefix + "importvarhq3a"] = 2
+        self.data[meter_prefix + "importvarhq3b"] = 2
+        self.data[meter_prefix + "importvarhq3c"] = 2
+
+        self.data[meter_prefix + "importvarhq4"] = 2
+        self.data[meter_prefix + "importvarhq4a"] = 2
+        self.data[meter_prefix + "importvarhq4b"] = 2
+        self.data[meter_prefix + "importvarhq4c"] = 2
 
         return True
 
-    def read_modbus_data(self):
-        return self.read_modbus_data_inverter() and self.read_modbus_data_meter1()
-
     def read_modbus_data_meter1(self):
-        """ if we don't need meter1 data, its ok"""
         if not self.read_meter1:
             return True
+        else:
+            return self.read_modbus_data_meter("m1_", 40190)
 
-        """start reading meter 1 data """
-        meter1_data = self.read_holding_registers(unit=1, address=40190, count=103)
-        if not meter1_data.isError():
+    def read_modbus_data_meter2(self):
+        if not self.read_meter2:
+            return True
+        else:
+            return self.read_modbus_data_meter("m2_", 40364)
+
+    def read_modbus_data_meter3(self):
+        if not self.read_meter3:
+            return True
+        else:
+            return self.read_modbus_data_meter("m3_", 40539)
+
+    def read_modbus_data_meter(self, meter_prefix, start_address):
+        """start reading meter  data """
+        meter_data = self.read_holding_registers(
+            unit=1, address=start_address, count=103
+        )
+        if not meter_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
-                meter1_data.registers, byteorder=Endian.Big
+                meter_data.registers, byteorder=Endian.Big
             )
             accurrent = decoder.decode_16bit_uint()
             accurrenta = decoder.decode_16bit_uint()
@@ -298,10 +352,10 @@ class SolaredgeModbusHub:
             accurrentb = self.calculate_value(accurrentb, accurrentsf)
             accurrentc = self.calculate_value(accurrentc, accurrentsf)
 
-            self.data["m1_accurrent"] = round(accurrent, abs(accurrentsf))
-            self.data["m1_accurrenta"] = round(accurrenta, abs(accurrentsf))
-            self.data["m1_accurrentb"] = round(accurrentb, abs(accurrentsf))
-            self.data["m1_accurrentc"] = round(accurrentc, abs(accurrentsf))
+            self.data[meter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
+            self.data[meter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
+            self.data[meter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
+            self.data[meter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
 
             acvoltageln = decoder.decode_16bit_uint()
             acvoltagean = decoder.decode_16bit_uint()
@@ -322,21 +376,37 @@ class SolaredgeModbusHub:
             acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
             acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
 
-            self.data["m1_acvoltageln"] = round(acvoltageln, abs(acvoltagesf))
-            self.data["m1_acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
-            self.data["m1_acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
-            self.data["m1_acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
-            self.data["m1_acvoltagell"] = round(acvoltagell, abs(acvoltagesf))
-            self.data["m1_acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
-            self.data["m1_acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
-            self.data["m1_acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
+            self.data[meter_prefix + "acvoltageln"] = round(
+                acvoltageln, abs(acvoltagesf)
+            )
+            self.data[meter_prefix + "acvoltagean"] = round(
+                acvoltagean, abs(acvoltagesf)
+            )
+            self.data[meter_prefix + "acvoltagebn"] = round(
+                acvoltagebn, abs(acvoltagesf)
+            )
+            self.data[meter_prefix + "acvoltagecn"] = round(
+                acvoltagecn, abs(acvoltagesf)
+            )
+            self.data[meter_prefix + "acvoltagell"] = round(
+                acvoltagell, abs(acvoltagesf)
+            )
+            self.data[meter_prefix + "acvoltageab"] = round(
+                acvoltageab, abs(acvoltagesf)
+            )
+            self.data[meter_prefix + "acvoltagebc"] = round(
+                acvoltagebc, abs(acvoltagesf)
+            )
+            self.data[meter_prefix + "acvoltageca"] = round(
+                acvoltageca, abs(acvoltagesf)
+            )
 
             acfreq = decoder.decode_16bit_uint()
             acfreqsf = decoder.decode_16bit_int()
 
             acfreq = self.calculate_value(acfreq, acfreqsf)
 
-            self.data["m1_acfreq"] = round(acfreq, abs(acfreqsf))
+            self.data[meter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
 
             acpower = decoder.decode_16bit_uint()
             acpowera = decoder.decode_16bit_uint()
@@ -349,10 +419,10 @@ class SolaredgeModbusHub:
             acpowerb = self.calculate_value(acpowerb, acpowersf)
             acpowerc = self.calculate_value(acpowerc, acpowersf)
 
-            self.data["m1_acpower"] = round(acpower, abs(acpowersf))
-            self.data["m1_acpowera"] = round(acpowera, abs(acpowersf))
-            self.data["m1_acpowerb"] = round(acpowerb, abs(acpowersf))
-            self.data["m1_acpowerc"] = round(acpowerc, abs(acpowersf))
+            self.data[meter_prefix + "acpower"] = round(acpower, abs(acpowersf))
+            self.data[meter_prefix + "acpowera"] = round(acpowera, abs(acpowersf))
+            self.data[meter_prefix + "acpowerb"] = round(acpowerb, abs(acpowersf))
+            self.data[meter_prefix + "acpowerc"] = round(acpowerc, abs(acpowersf))
 
             acva = decoder.decode_16bit_uint()
             acvaa = decoder.decode_16bit_uint()
@@ -365,10 +435,10 @@ class SolaredgeModbusHub:
             acvab = self.calculate_value(acvab, acvasf)
             acvac = self.calculate_value(acvac, acvasf)
 
-            self.data["m1_acva"] = round(acva, abs(acvasf))
-            self.data["m1_acvaa"] = round(acvaa, abs(acvasf))
-            self.data["m1_acvab"] = round(acvab, abs(acvasf))
-            self.data["m1_acvac"] = round(acvac, abs(acvasf))
+            self.data[meter_prefix + "acva"] = round(acva, abs(acvasf))
+            self.data[meter_prefix + "acvaa"] = round(acvaa, abs(acvasf))
+            self.data[meter_prefix + "acvab"] = round(acvab, abs(acvasf))
+            self.data[meter_prefix + "acvac"] = round(acvac, abs(acvasf))
 
             acvar = decoder.decode_16bit_uint()
             acvara = decoder.decode_16bit_uint()
@@ -381,10 +451,10 @@ class SolaredgeModbusHub:
             acvarb = self.calculate_value(acvarb, acvarsf)
             acvarc = self.calculate_value(acvarc, acvarsf)
 
-            self.data["m1_acvar"] = round(acvar, abs(acvarsf))
-            self.data["m1_acvara"] = round(acvara, abs(acvarsf))
-            self.data["m1_acvarb"] = round(acvarb, abs(acvarsf))
-            self.data["m1_acvarc"] = round(acvarc, abs(acvarsf))
+            self.data[meter_prefix + "acvar"] = round(acvar, abs(acvarsf))
+            self.data[meter_prefix + "acvara"] = round(acvara, abs(acvarsf))
+            self.data[meter_prefix + "acvarb"] = round(acvarb, abs(acvarsf))
+            self.data[meter_prefix + "acvarc"] = round(acvarc, abs(acvarsf))
 
             acpf = decoder.decode_16bit_uint()
             acpfa = decoder.decode_16bit_uint()
@@ -397,10 +467,10 @@ class SolaredgeModbusHub:
             acpfb = self.calculate_value(acpfb, acpfsf)
             acpfc = self.calculate_value(acpfc, acpfsf)
 
-            self.data["m1_acpf"] = round(acpf, abs(acpfsf))
-            self.data["m1_acpfa"] = round(acpfa, abs(acpfsf))
-            self.data["m1_acpfb"] = round(acpfb, abs(acpfsf))
-            self.data["m1_acpfc"] = round(acpfc, abs(acpfsf))
+            self.data[meter_prefix + "acpf"] = round(acpf, abs(acpfsf))
+            self.data[meter_prefix + "acpfa"] = round(acpfa, abs(acpfsf))
+            self.data[meter_prefix + "acpfb"] = round(acpfb, abs(acpfsf))
+            self.data[meter_prefix + "acpfc"] = round(acpfc, abs(acpfsf))
 
             exported = decoder.decode_32bit_uint()
             exporteda = decoder.decode_32bit_uint()
@@ -421,14 +491,14 @@ class SolaredgeModbusHub:
             importedb = self.calculate_value(importedb, energywsf)
             importedc = self.calculate_value(importedc, energywsf)
 
-            self.data["m1_exported"] = round(exported * 0.001, 3)
-            self.data["m1_exporteda"] = round(exporteda * 0.001, 3)
-            self.data["m1_exportedb"] = round(exportedb * 0.001, 3)
-            self.data["m1_exportedc"] = round(exportedc * 0.001, 3)
-            self.data["m1_imported"] = round(imported * 0.001, 3)
-            self.data["m1_importeda"] = round(importeda * 0.001, 3)
-            self.data["m1_importedb"] = round(importedb * 0.001, 3)
-            self.data["m1_importedc"] = round(importedc * 0.001, 3)
+            self.data[meter_prefix + "exported"] = round(exported * 0.001, 3)
+            self.data[meter_prefix + "exporteda"] = round(exporteda * 0.001, 3)
+            self.data[meter_prefix + "exportedb"] = round(exportedb * 0.001, 3)
+            self.data[meter_prefix + "exportedc"] = round(exportedc * 0.001, 3)
+            self.data[meter_prefix + "imported"] = round(imported * 0.001, 3)
+            self.data[meter_prefix + "importeda"] = round(importeda * 0.001, 3)
+            self.data[meter_prefix + "importedb"] = round(importedb * 0.001, 3)
+            self.data[meter_prefix + "importedc"] = round(importedc * 0.001, 3)
 
             exportedva = decoder.decode_32bit_uint()
             exportedvaa = decoder.decode_32bit_uint()
@@ -449,14 +519,26 @@ class SolaredgeModbusHub:
             importedvab = self.calculate_value(importedvab, energyvasf)
             importedvac = self.calculate_value(importedvac, energyvasf)
 
-            self.data["m1_exportedva"] = round(exportedva, abs(energyvasf))
-            self.data["m1_exportedvaa"] = round(exportedvaa, abs(energyvasf))
-            self.data["m1_exportedvab"] = round(exportedvab, abs(energyvasf))
-            self.data["m1_exportedvac"] = round(exportedvac, abs(energyvasf))
-            self.data["m1_importedva"] = round(importedva, abs(energyvasf))
-            self.data["m1_importedvaa"] = round(importedvaa, abs(energyvasf))
-            self.data["m1_importedvab"] = round(importedvab, abs(energyvasf))
-            self.data["m1_importedvac"] = round(importedvac, abs(energyvasf))
+            self.data[meter_prefix + "exportedva"] = round(exportedva, abs(energyvasf))
+            self.data[meter_prefix + "exportedvaa"] = round(
+                exportedvaa, abs(energyvasf)
+            )
+            self.data[meter_prefix + "exportedvab"] = round(
+                exportedvab, abs(energyvasf)
+            )
+            self.data[meter_prefix + "exportedvac"] = round(
+                exportedvac, abs(energyvasf)
+            )
+            self.data[meter_prefix + "importedva"] = round(importedva, abs(energyvasf))
+            self.data[meter_prefix + "importedvaa"] = round(
+                importedvaa, abs(energyvasf)
+            )
+            self.data[meter_prefix + "importedvab"] = round(
+                importedvab, abs(energyvasf)
+            )
+            self.data[meter_prefix + "importedvac"] = round(
+                importedvac, abs(energyvasf)
+            )
 
             importvarhq1 = decoder.decode_32bit_uint()
             importvarhq1a = decoder.decode_32bit_uint()
@@ -493,22 +575,54 @@ class SolaredgeModbusHub:
             importvarhq4b = self.calculate_value(importvarhq4b, energyvarsf)
             importvarhq4c = self.calculate_value(importvarhq4c, energyvarsf)
 
-            self.data["m1_importvarhq1"] = round(importvarhq1, abs(energyvarsf))
-            self.data["m1_importvarhq1a"] = round(importvarhq1a, abs(energyvarsf))
-            self.data["m1_importvarhq1b"] = round(importvarhq1b, abs(energyvarsf))
-            self.data["m1_importvarhq1c"] = round(importvarhq1c, abs(energyvarsf))
-            self.data["m1_importvarhq2"] = round(importvarhq2, abs(energyvarsf))
-            self.data["m1_importvarhq2a"] = round(importvarhq2a, abs(energyvarsf))
-            self.data["m1_importvarhq2b"] = round(importvarhq2b, abs(energyvarsf))
-            self.data["m1_importvarhq2c"] = round(importvarhq2c, abs(energyvarsf))
-            self.data["m1_importvarhq3"] = round(importvarhq3, abs(energyvarsf))
-            self.data["m1_importvarhq3a"] = round(importvarhq3a, abs(energyvarsf))
-            self.data["m1_importvarhq3b"] = round(importvarhq3b, abs(energyvarsf))
-            self.data["m1_importvarhq3c"] = round(importvarhq3c, abs(energyvarsf))
-            self.data["m1_importvarhq4"] = round(importvarhq4, abs(energyvarsf))
-            self.data["m1_importvarhq4a"] = round(importvarhq4a, abs(energyvarsf))
-            self.data["m1_importvarhq4b"] = round(importvarhq4b, abs(energyvarsf))
-            self.data["m1_importvarhq4c"] = round(importvarhq4c, abs(energyvarsf))
+            self.data[meter_prefix + "importvarhq1"] = round(
+                importvarhq1, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq1a"] = round(
+                importvarhq1a, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq1b"] = round(
+                importvarhq1b, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq1c"] = round(
+                importvarhq1c, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq2"] = round(
+                importvarhq2, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq2a"] = round(
+                importvarhq2a, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq2b"] = round(
+                importvarhq2b, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq2c"] = round(
+                importvarhq2c, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq3"] = round(
+                importvarhq3, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq3a"] = round(
+                importvarhq3a, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq3b"] = round(
+                importvarhq3b, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq3c"] = round(
+                importvarhq3c, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq4"] = round(
+                importvarhq4, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq4a"] = round(
+                importvarhq4a, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq4b"] = round(
+                importvarhq4b, abs(energyvarsf)
+            )
+            self.data[meter_prefix + "importvarhq4c"] = round(
+                importvarhq4c, abs(energyvarsf)
+            )
 
             return True
         else:

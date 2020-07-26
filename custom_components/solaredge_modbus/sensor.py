@@ -2,7 +2,9 @@ import logging
 from typing import Optional, Dict, Any
 from .const import (
     SENSOR_TYPES,
-    METER_SENSOR_TYPES,
+    METER1_SENSOR_TYPES,
+    METER2_SENSOR_TYPES,
+    METER3_SENSOR_TYPES,
     DOMAIN,
     ATTR_STATUS_DESCRIPTION,
     DEVICE_STATUSSES,
@@ -39,7 +41,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entities.append(sensor)
 
     if hub.read_meter1 == True:
-        for meter_sensor_info in METER_SENSOR_TYPES.values():
+        for meter_sensor_info in METER1_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
                 hub,
@@ -50,6 +52,33 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 meter_sensor_info[3],
             )
             entities.append(sensor)
+
+    if hub.read_meter2 == True:
+        for meter_sensor_info in METER2_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                meter_sensor_info[0],
+                meter_sensor_info[1],
+                meter_sensor_info[2],
+                meter_sensor_info[3],
+            )
+            entities.append(sensor)
+
+    if hub.read_meter3 == True:
+        for meter_sensor_info in METER3_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                meter_sensor_info[0],
+                meter_sensor_info[1],
+                meter_sensor_info[2],
+                meter_sensor_info[3],
+            )
+            entities.append(sensor)
+
     async_add_entities(entities)
     return True
 

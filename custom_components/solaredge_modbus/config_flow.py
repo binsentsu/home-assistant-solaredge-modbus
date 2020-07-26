@@ -3,7 +3,7 @@ import re
 
 import voluptuous as vol
 
-from homeassistant import config_entries, exceptions
+from homeassistant import config_entries
 from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from .const import (
     DOMAIN,
@@ -11,7 +11,11 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_PORT,
     CONF_READ_METER1,
+    CONF_READ_METER2,
+    CONF_READ_METER3,
     DEFAULT_READ_METER1,
+    DEFAULT_READ_METER2,
+    DEFAULT_READ_METER3,
 )
 from homeassistant.core import HomeAssistant, callback
 
@@ -21,6 +25,8 @@ DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): bool,
+        vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): bool,
+        vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): bool,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
     }
 )

@@ -9,6 +9,8 @@
           "name": "Het voorvoegsel dat moet worden gebruikt voor uw SolarEdge-sensoren",
           "port": "De TCP-poort waarop verbinding moet worden gemaakt met de SolarEdge-omvormer",
           "read_meter_1": "Lees meter 1 data (enkel voor voor meter modellen)",
+          "read_meter_2": "Lees meter 2 data (enkel voor voor meter modellen)",
+          "read_meter_3": "Lees meter 3 data (enkel voor voor meter modellen)",
           "scan_interval": "De polling-frequentie van de modbus registratie in seconden"
         }
       }
