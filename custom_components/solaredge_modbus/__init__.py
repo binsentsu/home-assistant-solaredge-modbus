@@ -282,7 +282,7 @@ class SolaredgeModbusHub:
             return True
 
         """start reading meter 1 data """
-        meter1_data = self.read_holding_registers(unit=1, address=40189, count=103)
+        meter1_data = self.read_holding_registers(unit=1, address=40190, count=103)
         if not meter1_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
                 meter1_data.registers, byteorder=Endian.Big
