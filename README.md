@@ -5,7 +5,7 @@ Home assistant Custom Component for reading data from Solaredge inverter through
 Implements Inverter registers from https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
 
 # Installation
-Copy contents of custom_components folder to your home-assistant config/custom_components folder.
+Copy contents of custom_components folder to your home-assistant config/custom_components folder or install through HACS.
 After reboot of Home-Assistant, this integration can be configured through the integration setup UI
 
 # Enabling Modbus TCP on SolarEdge Inverter
