@@ -1,0 +1,25 @@
+{
+  "config": {
+    "title": "SolarEdge Modbus",
+    "step": {
+      "user": {
+        "title": "Definer din SolarEdge modbus-tilkobling",
+        "data": {
+          "host": "IP-adressen til din Solaredge-omformer",
+          "name": "Prefikset som skal brukes til SolarEdge-sensorene dine",
+          "port": "TCP-porten som skal kobles til SolarEdge-omformeren",
+          "read_meter_1": "Les måler 1-data (bare for målermodeller)",
+          "read_meter_2": "Les måler 2-data (bare for målermodeller)",
+          "read_meter_3": "Les måler 3-data (bare for målermodeller)",
+          "scan_interval": "Avstemningsfrekvensen til modbus registreres på få sekunder"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Enheten er allerede konfigurert"
+    },
+    "abort": {
+      "already_configured": "Enheten er allerede konfigurert"
+    }
+  }
+}
