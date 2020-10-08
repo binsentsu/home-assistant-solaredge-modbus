@@ -217,6 +217,7 @@ class SolaredgeModbusHub:
         self.data["acvar"] = 1
         self.data["acpf"] = 1
         self.data["acenergy"] = 1
+        self.data["acenergy2"] = 1
         self.data["dccurrent"] = 1
         self.data["dcvoltage"] = 1
         self.data["dcpower"] = 1
@@ -743,7 +744,44 @@ class SolaredgeModbusHub:
             self.data["status"] = status
             statusvendor = decoder.decode_16bit_int()
             self.data["statusvendor"] = statusvendor
+            inverter_data2 = self.read_holding_registers(unit=2, address=40071, count=38)
+            if not inverter_data2.isError():
+                decoder2 = BinaryPayloadDecoder.fromRegisters(
+                inverter_data2.registers, byteorder=Endian.Big
+                )
 
-            return True
-        else:
-            return False
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_int()
+
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_int()
+
+                temp = decoder2.decode_16bit_int()
+                temp = decoder2.decode_16bit_int()
+
+                temp = decoder2.decode_16bit_uint()
+                temp = decoder2.decode_16bit_int()
+
+                temp = decoder2.decode_16bit_int()
+                temp = decoder2.decode_16bit_int()
+
+                temp = decoder2.decode_16bit_int()
+                temp = decoder2.decode_16bit_int()
+
+                temp = decoder2.decode_16bit_int()
+                temp = decoder2.decode_16bit_int()
+
+                acenergy2 = decoder2.decode_32bit_uint()
+                acenergysf2 = decoder2.decode_16bit_uint()
+                acenergy2 = self.calculate_value(acenergy2, acenergysf2)
+                self.data["acenergy2"] = round(acenergy2 * 0.001, 3)
+                return True
+        return False

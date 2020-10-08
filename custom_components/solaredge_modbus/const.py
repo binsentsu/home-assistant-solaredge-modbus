@@ -29,6 +29,7 @@ SENSOR_TYPES = {
     "AC_VAR": ["AC VAR", "acvar", "VAR", None],
     "AC_PF": ["AC PF", "acpf", "%", None],
     "AC_Energy_KWH": ["AC Energy KWH", "acenergy", "kWh", "mdi:solar-power"],
+    "AC_Energy2_KWH": ["AC Energy 2 KWH", "acenergy2", "kWh", "mdi:solar-power"],
     "DC_Current": ["DC Current", "dccurrent", "A", "mdi:current-dc"],
     "DC_Voltage": ["DC Voltage", "dcvoltage", "V", None],
     "DC_Power": ["DC Power", "dcpower", "W", "mdi:solar-power"],
