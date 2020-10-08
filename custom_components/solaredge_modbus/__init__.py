@@ -782,6 +782,5 @@ class SolaredgeModbusHub:
                 acenergy2 = decoder2.decode_32bit_uint()
                 acenergysf2 = decoder2.decode_16bit_uint()
                 acenergy2 = self.calculate_value(acenergy2, acenergysf2)
-                self.data["acenergy2"] = round(acenergy2 * 0.001, 3)
                 return True
         return False

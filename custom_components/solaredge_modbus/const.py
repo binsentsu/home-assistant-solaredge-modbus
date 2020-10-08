@@ -2,12 +2,14 @@ DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_PORT = 1502
+DEFAULT_NUMBER_INVERTERS = 1
 DEFAULT_READ_METER1 = False
 DEFAULT_READ_METER2 = False
 DEFAULT_READ_METER3 = False
 CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
+CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_READ_METER1 = "read_meter_1"
 CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
@@ -29,7 +31,6 @@ SENSOR_TYPES = {
     "AC_VAR": ["AC VAR", "acvar", "VAR", None],
     "AC_PF": ["AC PF", "acpf", "%", None],
     "AC_Energy_KWH": ["AC Energy KWH", "acenergy", "kWh", "mdi:solar-power"],
-    "AC_Energy2_KWH": ["AC Energy 2 KWH", "acenergy2", "kWh", "mdi:solar-power"],
     "DC_Current": ["DC Current", "dccurrent", "A", "mdi:current-dc"],
     "DC_Voltage": ["DC Voltage", "dcvoltage", "V", None],
     "DC_Power": ["DC Power", "dcpower", "W", "mdi:solar-power"],
