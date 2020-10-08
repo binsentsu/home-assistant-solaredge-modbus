@@ -28,17 +28,20 @@ async def async_setup_entry(hass, entry, async_add_entities):
     }
 
     entities = []
-    for sensor_info in SENSOR_TYPES.values():
-        sensor = SolarEdgeSensor(
-            hub_name,
-            hub,
-            device_info,
-            sensor_info[0],
-            sensor_info[1],
-            sensor_info[2],
-            sensor_info[3],
-        )
-        entities.append(sensor)
+    for inverter_index in range(hub.number_of_inverters):
+        inverter_variable_prefix = "i" + str(inverter_index + 1) + "_"
+        inverter_title_prefix = "I" + str(inverter_index + 1) + " "
+        for sensor_info in SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                inverter_title_prefix + sensor_info[0],
+                inverter_variable_prefix + sensor_info[1],
+                sensor_info[2],
+                sensor_info[3],
+            )
+            entities.append(sensor)
 
     if hub.read_meter1 == True:
         for meter_sensor_info in METER1_SENSOR_TYPES.values():
