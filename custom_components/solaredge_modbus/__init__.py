@@ -232,7 +232,6 @@ class SolaredgeModbusHub:
             self.data[inverter_prefix + "acvar"] = 1
             self.data[inverter_prefix + "acpf"] = 1
             self.data[inverter_prefix + "acenergy"] = 1
-            self.data[inverter_prefix + "acenergy2"] = 1
             self.data[inverter_prefix + "dccurrent"] = 1
             self.data[inverter_prefix + "dcvoltage"] = 1
             self.data[inverter_prefix + "dcpower"] = 1
