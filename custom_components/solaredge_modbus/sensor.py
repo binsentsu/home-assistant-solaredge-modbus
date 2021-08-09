@@ -10,9 +10,16 @@ from .const import (
     DEVICE_STATUSSES,
     ATTR_MANUFACTURER,
 )
+from datetime import datetime
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_NAME
+from homeassistant.const import CONF_NAME, DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR
+from homeassistant.components.sensor import (
+    PLATFORM_SCHEMA,
+    STATE_CLASS_MEASUREMENT,
+    SensorEntity,
+)
 from homeassistant.core import callback
+from homeassistant.util import dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,7 +90,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     return True
 
 
-class SolarEdgeSensor(Entity):
+class SolarEdgeSensor(SensorEntity):
     """Representation of an SolarEdge Modbus sensor."""
 
     def __init__(self, platform_name, hub, device_info, name, key, unit, icon):
@@ -95,6 +102,10 @@ class SolarEdgeSensor(Entity):
         self._unit_of_measurement = unit
         self._icon = icon
         self._device_info = device_info
+        if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
+            self._attr_device_class = DEVICE_CLASS_ENERGY
+            self._attr_last_reset = dt_util.utc_from_timestamp(0)
 
     async def async_added_to_hass(self):
         """Register callbacks."""
@@ -138,7 +149,7 @@ class SolarEdgeSensor(Entity):
             return self._hub.data[self._key]
 
     @property
-    def state_attributes(self) -> Optional[Dict[str, Any]]:
+    def extra_state_attributes(self):
         if self._key in ["status", "statusvendor"]:
             if self.state in DEVICE_STATUSSES:
                 return {ATTR_STATUS_DESCRIPTION: DEVICE_STATUSSES[self.state]}
