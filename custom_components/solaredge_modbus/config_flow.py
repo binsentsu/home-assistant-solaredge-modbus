@@ -10,6 +10,8 @@ from .const import (
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_PORT,
+    CONF_NUMBER_INVERTERS,
+    DEFAULT_NUMBER_INVERTERS,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
@@ -24,6 +26,8 @@ DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
+        # Would like to restrict this to only allow numbers between 1-9 but not sure how
+        vol.Required(CONF_NUMBER_INVERTERS, default=DEFAULT_NUMBER_INVERTERS): int,
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): bool,
         vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): bool,
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): bool,
@@ -83,4 +87,3 @@ class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", data_schema=DATA_SCHEMA, errors=errors
         )
-
