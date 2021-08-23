@@ -1,5 +1,8 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 
+# Multiple Inverter Fork (PR#12)
+The purpose of this fork is to track the upstream, but with the multiple inverter pull request #12 that hasn't been merged.
+
 # home-assistant-solaredge-modbus
 Home assistant Custom Component for reading data from Solaredge inverter through modbus TCP.
 Implements Inverter registers from https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
