@@ -635,4 +635,4 @@ class SolaredgeModbusHub:
             self.data[inverter_prefix + "status"] = status
             statusvendor = decoder.decode_16bit_int()
             self.data[inverter_prefix + "statusvendor"] = statusvendor
-         return True
+        return True
