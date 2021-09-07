@@ -72,9 +72,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
     number_of_inverters = entry.data.get(CONF_NUMBER_INVERTERS, 1)
-     # TODO is there anyway to ensure we don't receive 0 during config flow
-     if number_of_inverters < 1:
-         number_of_inverters = 1
+    # TODO is there anyway to ensure we don't receive 0 during config flow
+    if number_of_inverters < 1:
+        number_of_inverters = 1
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
@@ -519,10 +519,10 @@ class SolaredgeModbusHub:
 
     def read_modbus_data_inverters(self):
         for inverter_index in range(self.number_of_inverters):
-             inverter_prefix = "i" + str(inverter_index + 1) + "_"
-             inverter_data = self.read_holding_registers(unit=inverter_index + 1, address=40071, count=38)
-             if inverter_data.isError():
-                 return False
+            inverter_prefix = "i" + str(inverter_index + 1) + "_"
+            inverter_data = self.read_holding_registers(unit=inverter_index + 1, address=40071, count=38)
+            if inverter_data.isError():
+                return False
             decoder = BinaryPayloadDecoder.fromRegisters(
                 inverter_data.registers, byteorder=Endian.Big
             )
