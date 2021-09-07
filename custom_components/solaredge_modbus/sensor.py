@@ -18,6 +18,13 @@ from homeassistant.components.sensor import (
     STATE_CLASS_MEASUREMENT,
     SensorEntity,
 )
+
+try: # backward-compatibility to 2021.8
+    from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
+except ImportError:
+    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING
+
+
 from homeassistant.core import callback
 from homeassistant.util import dt as dt_util
 
@@ -103,9 +110,10 @@ class SolarEdgeSensor(SensorEntity):
         self._icon = icon
         self._device_info = device_info
         if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
-            self._attr_state_class = STATE_CLASS_MEASUREMENT
+            self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
             self._attr_device_class = DEVICE_CLASS_ENERGY
-            self._attr_last_reset = dt_util.utc_from_timestamp(0)
+            if STATE_CLASS_TOTAL_INCREASING == STATE_CLASS_MEASUREMENT: # compatibility to 2021.8
+                self._attr_last_reset = dt_util.utc_from_timestamp(0)
 
     async def async_added_to_hass(self):
         """Register callbacks."""
