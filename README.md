@@ -3,6 +3,8 @@
 # Multiple Inverter Fork (PR#12)
 The purpose of this fork is to track the upstream, but with the multiple inverter pull request #12 that hasn't been merged.
 
+This fork also removes "stub" methods the upstream author uses for testing because it's tested with a real mutiple-inverter solaredge installation plus we can use tools like https://www.modbusdriver.com/diagslave.html to provide simulated data through real modbus/tcp instead of faking it internally.
+
 # home-assistant-solaredge-modbus
 Home assistant Custom Component for reading data from Solaredge inverter through modbus TCP.
 Implements Inverter registers from https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
