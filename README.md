@@ -9,6 +9,7 @@ My setup consists of two inverters and one meter:
 * Inverters (addressed 1 and 2) on RS485-1
 * Ethernet connected to inverter 1 for modbus/tcp
 * E+I meter connected to inverter 1 on RS485-2.
+* Ethernet is also for Solaredge comms - no wireless or cell options
 
 # home-assistant-solaredge-modbus
 Home assistant Custom Component for reading data from Solaredge inverter through modbus TCP.
