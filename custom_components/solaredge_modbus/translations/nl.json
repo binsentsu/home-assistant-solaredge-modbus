@@ -11,6 +11,8 @@
           "read_meter_1": "Lees meter 1 data (enkel voor voor meter modellen)",
           "read_meter_2": "Lees meter 2 data (enkel voor voor meter modellen)",
           "read_meter_3": "Lees meter 3 data (enkel voor voor meter modellen)",
+          "read_battery_1": "Lees accu 1 data (alleen indien uitgerust)",
+          "read_battery_2": "Lees accu 2 data (alleen indien uitgerust)",
           "scan_interval": "De polling-frequentie van de modbus registratie in seconden"
         }
       }

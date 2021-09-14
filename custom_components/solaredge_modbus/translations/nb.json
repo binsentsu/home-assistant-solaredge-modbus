@@ -11,6 +11,8 @@
           "read_meter_1": "Les måler 1-data (bare for målermodeller)",
           "read_meter_2": "Les måler 2-data (bare for målermodeller)",
           "read_meter_3": "Les måler 3-data (bare for målermodeller)",
+          "read_battery_1": "Les batteri 1 data (bare når den er utstyrt)",
+          "read_battery_2": "Les batteri 2 data (bare når den er utstyrt)",
           "scan_interval": "Avstemningsfrekvensen til modbus registreres på få sekunder"
         }
       }
