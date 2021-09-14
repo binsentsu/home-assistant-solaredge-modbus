@@ -115,7 +115,7 @@ class SolarEdgeNumber(NumberEntity):
         elif self._fmt == "f":
             builder.add_32bit_float(float(value))
 
-        self._hub.write_registers(unit=1, address=self._register, payload=builder.to_registers())
+        self._hub.write_multiple_registers(address=self._register, payload=builder.to_registers())
 
         self._hub.data[self._key] = value
         self.async_write_ha_state()
