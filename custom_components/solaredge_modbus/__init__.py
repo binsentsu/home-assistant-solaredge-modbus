@@ -12,7 +12,7 @@ from pymodbus.payload import BinaryPayloadDecoder
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
@@ -201,28 +201,28 @@ class SolaredgeModbusHub:
         )
 
     def read_modbus_data_inverter_stub(self):
-        self.data["accurrent"] = 1
-        self.data["accurrenta"] = 1
-        self.data["accurrentb"] = 1
-        self.data["accurrentc"] = 1
-        self.data["acvoltageab"] = 1
-        self.data["acvoltagebc"] = 1
-        self.data["acvoltageca"] = 1
-        self.data["acvoltagean"] = 1
-        self.data["acvoltagebn"] = 1
-        self.data["acvoltagecn"] = 1
-        self.data["acpower"] = 1
-        self.data["acfreq"] = 1
-        self.data["acva"] = 1
-        self.data["acvar"] = 1
-        self.data["acpf"] = 1
-        self.data["acenergy"] = 1
-        self.data["dccurrent"] = 1
-        self.data["dcvoltage"] = 1
-        self.data["dcpower"] = 1
-        self.data["tempsink"] = 1
-        self.data["status"] = 1
-        self.data["statusvendor"] = 1
+        self.data["accurrent"] = STATE_UNKNOWN
+        self.data["accurrenta"] = STATE_UNKNOWN
+        self.data["accurrentb"] = STATE_UNKNOWN
+        self.data["accurrentc"] = STATE_UNKNOWN
+        self.data["acvoltageab"] = STATE_UNKNOWN
+        self.data["acvoltagebc"] = STATE_UNKNOWN
+        self.data["acvoltageca"] = STATE_UNKNOWN
+        self.data["acvoltagean"] = STATE_UNKNOWN
+        self.data["acvoltagebn"] = STATE_UNKNOWN
+        self.data["acvoltagecn"] = STATE_UNKNOWN
+        self.data["acpower"] = STATE_UNKNOWN
+        self.data["acfreq"] = STATE_UNKNOWN
+        self.data["acva"] = STATE_UNKNOWN
+        self.data["acvar"] = STATE_UNKNOWN
+        self.data["acpf"] = STATE_UNKNOWN
+        self.data["acenergy"] = STATE_UNKNOWN
+        self.data["dccurrent"] = STATE_UNKNOWN
+        self.data["dcvoltage"] = STATE_UNKNOWN
+        self.data["dcpower"] = STATE_UNKNOWN
+        self.data["tempsink"] = STATE_UNKNOWN
+        self.data["status"] = STATE_UNKNOWN
+        self.data["statusvendor"] = STATE_UNKNOWN
 
         return True
 
@@ -236,81 +236,81 @@ class SolaredgeModbusHub:
         return self.read_modbus_data_meter_stub("m3_")
 
     def read_modbus_data_meter_stub(self, meter_prefix):
-        self.data[meter_prefix + "accurrent"] = 2
-        self.data[meter_prefix + "accurrenta"] = 2
-        self.data[meter_prefix + "accurrentb"] = 2
-        self.data[meter_prefix + "accurrentc"] = 2
+        self.data[meter_prefix + "accurrent"] = STATE_UNKNOWN
+        self.data[meter_prefix + "accurrenta"] = STATE_UNKNOWN
+        self.data[meter_prefix + "accurrentb"] = STATE_UNKNOWN
+        self.data[meter_prefix + "accurrentc"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "acvoltageln"] = 2
-        self.data[meter_prefix + "acvoltagean"] = 2
-        self.data[meter_prefix + "acvoltagebn"] = 2
-        self.data[meter_prefix + "acvoltagecn"] = 2
-        self.data[meter_prefix + "acvoltagell"] = 2
-        self.data[meter_prefix + "acvoltageab"] = 2
-        self.data[meter_prefix + "acvoltagebc"] = 2
-        self.data[meter_prefix + "acvoltageca"] = 2
+        self.data[meter_prefix + "acvoltageln"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvoltagean"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvoltagebn"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvoltagecn"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvoltagell"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvoltageab"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvoltagebc"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvoltageca"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "acfreq"] = 2
+        self.data[meter_prefix + "acfreq"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "acpower"] = 2
-        self.data[meter_prefix + "acpowera"] = 2
-        self.data[meter_prefix + "acpowerb"] = 2
-        self.data[meter_prefix + "acpowerc"] = 2
+        self.data[meter_prefix + "acpower"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acpowera"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acpowerb"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acpowerc"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "acva"] = 2
-        self.data[meter_prefix + "acvaa"] = 2
-        self.data[meter_prefix + "acvab"] = 2
-        self.data[meter_prefix + "acvac"] = 2
+        self.data[meter_prefix + "acva"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvaa"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvab"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvac"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "acvar"] = 2
-        self.data[meter_prefix + "acvara"] = 2
-        self.data[meter_prefix + "acvarb"] = 2
-        self.data[meter_prefix + "acvarc"] = 2
+        self.data[meter_prefix + "acvar"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvara"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvarb"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acvarc"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "acpf"] = 2
-        self.data[meter_prefix + "acpfa"] = 2
-        self.data[meter_prefix + "acpfb"] = 2
-        self.data[meter_prefix + "acpfc"] = 2
+        self.data[meter_prefix + "acpf"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acpfa"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acpfb"] = STATE_UNKNOWN
+        self.data[meter_prefix + "acpfc"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "exported"] = 2
-        self.data[meter_prefix + "exporteda"] = 2
-        self.data[meter_prefix + "exportedb"] = 2
-        self.data[meter_prefix + "exportedc"] = 2
+        self.data[meter_prefix + "exported"] = STATE_UNKNOWN
+        self.data[meter_prefix + "exporteda"] = STATE_UNKNOWN
+        self.data[meter_prefix + "exportedb"] = STATE_UNKNOWN
+        self.data[meter_prefix + "exportedc"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "imported"] = 2
-        self.data[meter_prefix + "importeda"] = 2
-        self.data[meter_prefix + "importedb"] = 2
-        self.data[meter_prefix + "importedc"] = 2
+        self.data[meter_prefix + "imported"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importeda"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importedb"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importedc"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "exportedva"] = 2
-        self.data[meter_prefix + "exportedvaa"] = 2
-        self.data[meter_prefix + "exportedvab"] = 2
-        self.data[meter_prefix + "exportedvac"] = 2
+        self.data[meter_prefix + "exportedva"] = STATE_UNKNOWN
+        self.data[meter_prefix + "exportedvaa"] = STATE_UNKNOWN
+        self.data[meter_prefix + "exportedvab"] = STATE_UNKNOWN
+        self.data[meter_prefix + "exportedvac"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "importedva"] = 2
-        self.data[meter_prefix + "importedvaa"] = 2
-        self.data[meter_prefix + "importedvab"] = 2
-        self.data[meter_prefix + "importedvac"] = 2
+        self.data[meter_prefix + "importedva"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importedvaa"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importedvab"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importedvac"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "importvarhq1"] = 2
-        self.data[meter_prefix + "importvarhq1a"] = 2
-        self.data[meter_prefix + "importvarhq1b"] = 2
-        self.data[meter_prefix + "importvarhq1c"] = 2
+        self.data[meter_prefix + "importvarhq1"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq1a"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq1b"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq1c"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "importvarhq2"] = 2
-        self.data[meter_prefix + "importvarhq2a"] = 2
-        self.data[meter_prefix + "importvarhq2b"] = 2
-        self.data[meter_prefix + "importvarhq2c"] = 2
+        self.data[meter_prefix + "importvarhq2"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq2a"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq2b"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq2c"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "importvarhq3"] = 2
-        self.data[meter_prefix + "importvarhq3a"] = 2
-        self.data[meter_prefix + "importvarhq3b"] = 2
-        self.data[meter_prefix + "importvarhq3c"] = 2
+        self.data[meter_prefix + "importvarhq3"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq3a"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq3b"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq3c"] = STATE_UNKNOWN
 
-        self.data[meter_prefix + "importvarhq4"] = 2
-        self.data[meter_prefix + "importvarhq4a"] = 2
-        self.data[meter_prefix + "importvarhq4b"] = 2
-        self.data[meter_prefix + "importvarhq4c"] = 2
+        self.data[meter_prefix + "importvarhq4"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq4a"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq4b"] = STATE_UNKNOWN
+        self.data[meter_prefix + "importvarhq4c"] = STATE_UNKNOWN
 
         return True
 
