@@ -1,9 +1,9 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 
 # Multiple Inverter Fork (PR#12)
-The purpose of this fork is to track the upstream, but with the multiple inverter pull request #12 that hasn't been merged.
+The purpose of this fork is to track the upstream, but with the multiple inverter pull request #12 that hasn't been merged yet.
 
-This fork also removes "stub" methods the upstream author uses for testing because it's tested with a real mutiple-inverter solaredge installation plus we can use tools like https://www.modbusdriver.com/diagslave.html to provide simulated data through real modbus/tcp instead of faking it internally.
+This fork also removes the "stub" methods from the upstream that were used for testing since I'm testing it with a live mutiple-inverter solaredge installation plus tools like https://www.modbusdriver.com/diagslave.html to provide simulated connections.
 
 My setup consists of two inverters and one meter:
 * Inverters (addressed 1 and 2) on RS485-1
@@ -23,3 +23,8 @@ After reboot of Home-Assistant, this integration can be configured through the i
 1. Enable wifi direct on the inverter by switching the red toggle switch on the inverter to "P" position for less than 5 seconds.
 2. Connect to the inverter access point like you would for a normal wifi network. The wifi password is published at the right side of the inverter. 
 3. Open up a browser and go to http://172.16.0.1 > Site Communication. From this webpage you can enable modbus TCP without setApp or installer account.
+
+# Credits
+Credit for multiple inverter support on this integration goes to: https://github.com/julezman/home-assistant-solaredge-modbus/tree/multiple_inverters
+
+I first used that branch as-is, but needed to start this fork becasue Home Assistant evolved and more changes were needed (like energy dashboard), and I wanted to be able to make it easier to merge them from the upstream.
