@@ -30,7 +30,10 @@ from .const import (
     DEFAULT_READ_METER3,
     DEFAULT_READ_BATTERY1,
     DEFAULT_READ_BATTERY2,
-    BATTERY_STATUSSES
+    BATTERY_STATUSSES,
+    STOREDGE_CONTROL_MODE,
+    STOREDGE_AC_CHARGE_POLICY,
+    STOREDGE_CHARGE_DISCHARGE_MODE
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,7 +58,7 @@ CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: vol.Schema({cv.slug: SOLAREDGE_MODBUS_SCHEMA})}, extra=vol.ALLOW_EXTRA
 )
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["number", "select", "sensor"]
 
 
 async def async_setup(hass, config):
@@ -194,6 +197,12 @@ class SolaredgeModbusHub:
             kwargs = {"unit": unit} if unit else {}
             return self._client.read_holding_registers(address, count, **kwargs)
 
+    def write_registers(self, unit, address, payload):
+        """Write registers."""
+        with self._lock:
+            kwargs = {"unit": unit} if unit else {}
+            return self._client.write_registers(address, payload, **kwargs)
+
     def calculate_value(self, value, sf):
         return value * 10 ** sf
 
@@ -203,6 +212,7 @@ class SolaredgeModbusHub:
             and self.read_modbus_data_meter1()
             and self.read_modbus_data_meter2()
             and self.read_modbus_data_meter3()
+            and self.read_modbus_data_storage()
             and self.read_modbus_data_battery1()
             and self.read_modbus_data_battery2()
         )
@@ -640,6 +650,61 @@ class SolaredgeModbusHub:
             return True
         else:
             return False
+
+    def read_modbus_data_storage(self):
+        if not self.read_battery1 and not self.read_battery2:
+            return True
+
+        storage_data = self.read_holding_registers(unit=1, address=57348, count=14)
+        if not storage_data.isError():
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                storage_data.registers, byteorder=Endian.Big,wordorder=Endian.Little
+            )
+
+            #0xE004 - 1 - storage control mode
+            storage_control_mode = decoder.decode_16bit_uint()
+            if storage_control_mode in STOREDGE_CONTROL_MODE:
+                self.data["storage_contol_mode"] = STOREDGE_CONTROL_MODE[storage_control_mode]
+            else:
+                self.data["storage_contol_mode"] = storage_control_mode
+
+            #0xE005 - 1 - storage ac charge policy
+            storage_ac_charge_policy = decoder.decode_16bit_uint()
+            if storage_ac_charge_policy in STOREDGE_AC_CHARGE_POLICY:
+                self.data["storage_ac_charge_policy"] = STOREDGE_AC_CHARGE_POLICY[storage_ac_charge_policy]
+            else:
+                self.data["storage_ac_charge_policy"] = storage_ac_charge_policy
+
+            #0xE006 - 2 - storage AC charge limit (kWh or %)
+            self.data["storage_ac_charge_limit"] = round(decoder.decode_32bit_float(), 3)
+
+            #0xE008 - 2 - storage backup reserved capacity (%)
+            self.data["storage_backup_reserved"] = round(decoder.decode_32bit_float(), 3)
+
+            #0xE00A - 1 - storage charge / discharge default mode
+            storage_default_mode = decoder.decode_16bit_uint()
+            if storage_default_mode in STOREDGE_CHARGE_DISCHARGE_MODE:
+                self.data["storage_default_mode"] = STOREDGE_CHARGE_DISCHARGE_MODE[storage_default_mode]
+            else:
+                self.data["storage_default_mode"] = storage_default_mode
+
+            #0xE00B - 2- storage remote command timeout (seconds)
+            self.data["storage_remote_command_timeout"] = decoder.decode_32bit_uint()
+
+            #0xE00D - 1 - storage remote command mode
+            storage_remote_command_mode = decoder.decode_16bit_uint()
+            if storage_remote_command_mode in STOREDGE_CHARGE_DISCHARGE_MODE:
+                self.data["storage_remote_command_mode"] = STOREDGE_CHARGE_DISCHARGE_MODE[storage_remote_command_mode]
+            else:
+                self.data["storage_remote_command_mode"] = storage_remote_command_mode
+
+            #0xE00E - 2- storate remote charge limit
+            self.data["storage_remote_charge_limit"] = round(decoder.decode_32bit_float(), 3)
+
+            #0xE010 - 2- storate remote discharge limit
+            self.data["storage_remote_discharge_limit"] = round(decoder.decode_32bit_float(), 3)
+
+        return True
 
     def read_modbus_data_battery1(self):
         if not self.read_battery1:
