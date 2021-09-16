@@ -184,14 +184,6 @@ class SolaredgeModbusHub:
     def calculate_value(self, value, sf):
         return value * 10 ** sf
 
-    def read_modbus_data_stub(self):
-        return (
-            self.read_modbus_data_inverter_stub()
-            and self.read_modbus_data_meter1_stub()
-            and self.read_modbus_data_meter2_stub()
-            and self.read_modbus_data_meter3_stub()
-        )
-
     def read_modbus_data(self):
         return (
             self.read_modbus_data_inverter()
@@ -199,120 +191,6 @@ class SolaredgeModbusHub:
             and self.read_modbus_data_meter2()
             and self.read_modbus_data_meter3()
         )
-
-    def read_modbus_data_inverter_stub(self):
-        self.data["accurrent"] = 1
-        self.data["accurrenta"] = 1
-        self.data["accurrentb"] = 1
-        self.data["accurrentc"] = 1
-        self.data["acvoltageab"] = 1
-        self.data["acvoltagebc"] = 1
-        self.data["acvoltageca"] = 1
-        self.data["acvoltagean"] = 1
-        self.data["acvoltagebn"] = 1
-        self.data["acvoltagecn"] = 1
-        self.data["acpower"] = 1
-        self.data["acfreq"] = 1
-        self.data["acva"] = 1
-        self.data["acvar"] = 1
-        self.data["acpf"] = 1
-        self.data["acenergy"] = 1
-        self.data["dccurrent"] = 1
-        self.data["dcvoltage"] = 1
-        self.data["dcpower"] = 1
-        self.data["tempsink"] = 1
-        self.data["status"] = 1
-        self.data["statusvendor"] = 1
-
-        return True
-
-    def read_modbus_data_meter1_stub(self):
-        return self.read_modbus_data_meter_stub("m1_")
-
-    def read_modbus_data_meter2_stub(self):
-        return self.read_modbus_data_meter_stub("m2_")
-
-    def read_modbus_data_meter3_stub(self):
-        return self.read_modbus_data_meter_stub("m3_")
-
-    def read_modbus_data_meter_stub(self, meter_prefix):
-        self.data[meter_prefix + "accurrent"] = 2
-        self.data[meter_prefix + "accurrenta"] = 2
-        self.data[meter_prefix + "accurrentb"] = 2
-        self.data[meter_prefix + "accurrentc"] = 2
-
-        self.data[meter_prefix + "acvoltageln"] = 2
-        self.data[meter_prefix + "acvoltagean"] = 2
-        self.data[meter_prefix + "acvoltagebn"] = 2
-        self.data[meter_prefix + "acvoltagecn"] = 2
-        self.data[meter_prefix + "acvoltagell"] = 2
-        self.data[meter_prefix + "acvoltageab"] = 2
-        self.data[meter_prefix + "acvoltagebc"] = 2
-        self.data[meter_prefix + "acvoltageca"] = 2
-
-        self.data[meter_prefix + "acfreq"] = 2
-
-        self.data[meter_prefix + "acpower"] = 2
-        self.data[meter_prefix + "acpowera"] = 2
-        self.data[meter_prefix + "acpowerb"] = 2
-        self.data[meter_prefix + "acpowerc"] = 2
-
-        self.data[meter_prefix + "acva"] = 2
-        self.data[meter_prefix + "acvaa"] = 2
-        self.data[meter_prefix + "acvab"] = 2
-        self.data[meter_prefix + "acvac"] = 2
-
-        self.data[meter_prefix + "acvar"] = 2
-        self.data[meter_prefix + "acvara"] = 2
-        self.data[meter_prefix + "acvarb"] = 2
-        self.data[meter_prefix + "acvarc"] = 2
-
-        self.data[meter_prefix + "acpf"] = 2
-        self.data[meter_prefix + "acpfa"] = 2
-        self.data[meter_prefix + "acpfb"] = 2
-        self.data[meter_prefix + "acpfc"] = 2
-
-        self.data[meter_prefix + "exported"] = 2
-        self.data[meter_prefix + "exporteda"] = 2
-        self.data[meter_prefix + "exportedb"] = 2
-        self.data[meter_prefix + "exportedc"] = 2
-
-        self.data[meter_prefix + "imported"] = 2
-        self.data[meter_prefix + "importeda"] = 2
-        self.data[meter_prefix + "importedb"] = 2
-        self.data[meter_prefix + "importedc"] = 2
-
-        self.data[meter_prefix + "exportedva"] = 2
-        self.data[meter_prefix + "exportedvaa"] = 2
-        self.data[meter_prefix + "exportedvab"] = 2
-        self.data[meter_prefix + "exportedvac"] = 2
-
-        self.data[meter_prefix + "importedva"] = 2
-        self.data[meter_prefix + "importedvaa"] = 2
-        self.data[meter_prefix + "importedvab"] = 2
-        self.data[meter_prefix + "importedvac"] = 2
-
-        self.data[meter_prefix + "importvarhq1"] = 2
-        self.data[meter_prefix + "importvarhq1a"] = 2
-        self.data[meter_prefix + "importvarhq1b"] = 2
-        self.data[meter_prefix + "importvarhq1c"] = 2
-
-        self.data[meter_prefix + "importvarhq2"] = 2
-        self.data[meter_prefix + "importvarhq2a"] = 2
-        self.data[meter_prefix + "importvarhq2b"] = 2
-        self.data[meter_prefix + "importvarhq2c"] = 2
-
-        self.data[meter_prefix + "importvarhq3"] = 2
-        self.data[meter_prefix + "importvarhq3a"] = 2
-        self.data[meter_prefix + "importvarhq3b"] = 2
-        self.data[meter_prefix + "importvarhq3c"] = 2
-
-        self.data[meter_prefix + "importvarhq4"] = 2
-        self.data[meter_prefix + "importvarhq4a"] = 2
-        self.data[meter_prefix + "importvarhq4b"] = 2
-        self.data[meter_prefix + "importvarhq4c"] = 2
-
-        return True
 
     def read_modbus_data_meter1(self):
         if not self.read_meter1:
