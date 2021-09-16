@@ -5,9 +5,12 @@ from .const import (
     METER1_SENSOR_TYPES,
     METER2_SENSOR_TYPES,
     METER3_SENSOR_TYPES,
+    BATTERY1_SENSOR_TYPES,
+    BATTERY2_SENSOR_TYPES,
     DOMAIN,
     ATTR_STATUS_DESCRIPTION,
     DEVICE_STATUSSES,
+    BATTERY_STATUSSES,
     ATTR_MANUFACTURER,
 )
 from datetime import datetime
@@ -90,6 +93,32 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 meter_sensor_info[1],
                 meter_sensor_info[2],
                 meter_sensor_info[3],
+            )
+            entities.append(sensor)
+
+    if hub.read_battery1 == True:
+        for sensor_info in BATTERY1_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                sensor_info[0],
+                sensor_info[1],
+                sensor_info[2],
+                sensor_info[3],
+            )
+            entities.append(sensor)
+
+    if hub.read_battery2 == True:
+        for sensor_info in BATTERY2_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                sensor_info[0],
+                sensor_info[1],
+                sensor_info[2],
+                sensor_info[3],
             )
             entities.append(sensor)
 
