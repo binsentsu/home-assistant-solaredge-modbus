@@ -10,6 +10,8 @@ Home assistant Custom Component for reading data from Solaredge inverter through
 - Configurable polling interval
 - All modbus registers are read within 1 read cycle for data consistency between sensors.
 - Supports reading inverter data and meter (1->3) data.
+- Supports reading battery data (1->2)
+- Supports controlling storedge: Change battery charge / discharge profile
 
 ### Configuration
 Go to the integrations page in your configuration and click on new integration -> SolarEdge Modbus
