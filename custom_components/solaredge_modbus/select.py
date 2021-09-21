@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 from .const import (
     DOMAIN,
     ATTR_MANUFACTURER,
+    EXPORT_CONTROL_SELECT_TYPES,
     STORAGE_SELECT_TYPES,
 )
 
@@ -29,7 +30,22 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 
     entities = []
 
-    if hub.read_battery1 == True or hub.read_battery2 == True:
+    # If a meter is available add export control
+    if hub.has_meter:
+        for select_info in EXPORT_CONTROL_SELECT_TYPES:
+            select = SolarEdgeSelect(
+                hub_name,
+                hub,
+                device_info,
+                select_info[0],
+                select_info[1],
+                select_info[2],
+                select_info[3],
+            )
+            entities.append(select)
+
+    # If a battery is available add storage control
+    if hub.has_battery:
         for select_info in STORAGE_SELECT_TYPES:
             select = SolarEdgeSelect(
                 hub_name,

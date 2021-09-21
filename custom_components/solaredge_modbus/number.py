@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 from .const import (
     DOMAIN,
     ATTR_MANUFACTURER,
+    EXPORT_CONTROL_NUMBER_TYPES,
     STORAGE_NUMBER_TYPES,
 )
 
@@ -32,7 +33,23 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 
     entities = []
 
-    if hub.read_battery1 == True or hub.read_battery2 == True:
+    # If a meter is available add export control
+    if hub.has_meter:
+        for number_info in EXPORT_CONTROL_NUMBER_TYPES:
+            number = SolarEdgeNumber(
+                hub_name,
+                hub,
+                device_info,
+                number_info[0],
+                number_info[1],
+                number_info[2],
+                number_info[3],
+                number_info[4],
+            )
+            entities.append(number)
+
+    # If a battery is available add storage control
+    if hub.has_battery:
         for number_info in STORAGE_NUMBER_TYPES:
             number = SolarEdgeNumber(
                 hub_name,

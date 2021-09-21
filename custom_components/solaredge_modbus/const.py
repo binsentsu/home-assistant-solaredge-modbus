@@ -283,6 +283,18 @@ BATTERY_STATUSSES = {
     10: "Sleep"
 }
 
+EXPORT_CONTROL_MODE = {
+    0: "Disabled",
+    1: "Direct Export Limitation",
+    2: "Indirect Export Limitation",
+    4: "Production Limitation"
+}
+
+EXPORT_CONTROL_LIMIT_MODE = {
+    0: "Total",
+    1: "Per phase"
+}
+
 STOREDGE_CONTROL_MODE = {
     0: "Disabled",
     1: "Maximize Self Consumption",
@@ -307,6 +319,15 @@ STOREDGE_CHARGE_DISCHARGE_MODE = {
     5: "Discharge to match load",
     7: "Maximize self consumption",
 }
+
+EXPORT_CONTROL_SELECT_TYPES = [
+    ["Export control mode", "export_control_mode", 0xE000, EXPORT_CONTROL_MODE],
+    ["Export control limit mode", "export_control_limit_mode", 0xE001, EXPORT_CONTROL_LIMIT_MODE],
+]
+
+EXPORT_CONTROL_NUMBER_TYPES = [
+    ["Export control site limit", "export_control_site_limit", 0xE002, "f", {"min": 0, "max": 10000, "unit": "W"}],
+]
 
 STORAGE_SELECT_TYPES = [
     ["Storage Control Mode", "storage_contol_mode", 0xE004, STOREDGE_CONTROL_MODE],
