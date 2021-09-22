@@ -6,8 +6,10 @@ This fork was created to track the upstream, but with the multiple inverter pull
 My setup consists of two inverters and one meter:
 * Inverters (addressed 1 and 2) on RS485-1
 * Ethernet connected to inverter 1 for modbus/tcp
-* E+I meter connected to inverter 1 on RS485-2.
+* E+I meter (address 2) connected to inverter 1 on RS485-2.
 * Ethernet is also for Solaredge comms - no wireless or cell options
+
+Important: The inverters must have sequential unit IDs (i.e. 1, 2, 3, ...). It doesn't matter which RS485 bus your inverter chain is on as long as it's configured as Solaredge leader/follower (master/slave in older firmware). If you have meters connected to inverter unit 1 the meter IDs *can* overlap the inverter unit IDs because they're on different busses (the solaredge meter ships with default ID 2).
 
 Q: Why don't you have batteries?
 A: Because I have net metering without TOU and I get paid for exported energy, so there was no ROI to invest in a battery system.
