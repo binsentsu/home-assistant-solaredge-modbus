@@ -758,6 +758,7 @@ class SolaredgeModbusHub:
             if not battery_status in [3,4,6]:
                 self.data[battery_prefix + 'voltage'] = 0
                 self.data[battery_prefix + 'current'] = 0
+                self.data[battery_prefix + 'power'] = 0
 
             if battery_status in BATTERY_STATUSSES:
                 self.data[battery_prefix + 'status'] = BATTERY_STATUSSES[battery_status]
