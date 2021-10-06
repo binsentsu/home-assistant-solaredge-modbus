@@ -191,6 +191,12 @@ class SolarEdgeSensor(SensorEntity):
         if self._key in ["status", "statusvendor"]:
             if self.state in DEVICE_STATUSSES:
                 return {ATTR_STATUS_DESCRIPTION: DEVICE_STATUSSES[self.state]}
+        elif "battery1" in self._key:
+            if "battery1_attrs" in self._hub.data:
+                return self._hub.data["battery1_attrs"]
+        elif "battery2" in self._key:
+            if "battery2_attrs" in self._hub.data:
+                return self._hub.data["battery2_attrs"]
         return None
 
     @property

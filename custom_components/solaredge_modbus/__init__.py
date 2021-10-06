@@ -710,16 +710,65 @@ class SolaredgeModbusHub:
         if not self.read_battery1:
             return True
         else:
-            return self.read_modbus_data_battery("battery1_", 0xE16C)
+            return self.read_modbus_data_battery("battery1_", 0xE100)
 
     def read_modbus_data_battery2(self):
         if not self.read_battery2:
             return True
         else:
-            return self.read_modbus_data_battery("battery2_", 0xE26C)
+            return self.read_modbus_data_battery("battery2_", 0xE200)
 
     def read_modbus_data_battery(self, battery_prefix, start_address):
-        storage_data = self.read_holding_registers(unit=1, address=start_address, count=28)
+        if not battery_prefix + "attrs" in self.data:
+            battery_data = self.read_holding_registers(unit=1, address=start_address, count=0x4C)
+            if not battery_data.isError():
+                decoder = BinaryPayloadDecoder.fromRegisters(
+                    battery_data.registers, byteorder=Endian.Big,wordorder=Endian.Little
+                )
+
+                def decode_string(decoder):
+                    s = decoder.decode_string(32) # get 32 char string
+                    s = s.partition(b'\0')[0] # omit NULL terminators
+                    s = s.decode("utf-8") # decode UTF-8
+                    return str(s)
+
+                battery_info = {}
+                #0x00 - 16 - manufacturer
+                battery_info["manufacturer"] = decode_string(decoder)
+
+                #0x10 - 16 - model
+                battery_info["model"] = decode_string(decoder)
+
+                #0x20 - 16 - firmware version
+                battery_info["firmware_version"] = decode_string(decoder)
+
+                #0x30 - 16 - serial number
+                battery_info["serial_number"] = decode_string(decoder)
+
+                #0x40 - 1 - device ID
+                battery_info["device_id"] = decoder.decode_16bit_uint()
+
+                #0x41 - 1 - reserved
+                decoder.decode_16bit_uint()
+
+                #0x42 - 2 - rated energy
+                battery_info["rated_energy"] = decoder.decode_32bit_float()
+
+                #0x44 - 2 - max charge continuous power
+                battery_info["max_power_continuous_charge"] = decoder.decode_32bit_float()
+
+                #0x46 - 2 - max discharge continuous power
+                battery_info["max_power_continuous_discharge"] = decoder.decode_32bit_float()
+
+                #0x48 - 2 - max charge peak power
+                battery_info["max_power_peak_charge"] = decoder.decode_32bit_float()#
+
+                #0x4A - 2 - max discharge peak power
+                battery_info["max_power_peak_discharge"] = decoder.decode_32bit_float()
+
+                self.data[battery_prefix + "attrs"] = battery_info
+
+        storage_data = self.read_holding_registers(unit=1, address=start_address + 0x6C, count=28)
         if not storage_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
                 storage_data.registers, byteorder=Endian.Big,wordorder=Endian.Little
