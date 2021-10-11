@@ -113,6 +113,7 @@ class SolarEdgeSensor(SensorEntity):
         self._unit_of_measurement = unit
         self._icon = icon
         self._device_info = device_info
+        self._attr_state_class = STATE_CLASS_MEASUREMENT
         if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
             self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
             self._attr_device_class = DEVICE_CLASS_ENERGY
