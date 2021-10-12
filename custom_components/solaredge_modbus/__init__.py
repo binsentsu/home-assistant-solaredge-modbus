@@ -722,9 +722,9 @@ class SolaredgeModbusHub:
     def read_modbus_data_battery(self, battery_prefix, start_address):
         if not battery_prefix + "attrs" in self.data:
             battery_data = self.read_holding_registers(address=start_address, count=0x4C)
-            if not battery_data.isError():
+            if battery_data:
                 decoder = BinaryPayloadDecoder.fromRegisters(
-                    battery_data.registers, byteorder=Endian.Big,wordorder=Endian.Little
+                    battery_data, byteorder=Endian.Big,wordorder=Endian.Little
                 )
 
                 def decode_string(decoder):
@@ -768,6 +768,7 @@ class SolaredgeModbusHub:
                 battery_info["max_power_peak_discharge"] = decoder.decode_32bit_float()
 
                 self.data[battery_prefix + "attrs"] = battery_info
+
 
         storage_data = self.read_holding_registers(address=start_address + 0x6C, count=28)
         if storage_data:
