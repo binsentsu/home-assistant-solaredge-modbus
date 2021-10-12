@@ -1,6 +1,7 @@
 """The SolarEdge Modbus Integration."""
 import asyncio
 import logging
+import operator
 import threading
 from datetime import timedelta
 from typing import Optional
@@ -110,6 +111,18 @@ async def async_unload_entry(hass, entry):
     hass.data[DOMAIN].pop(entry.data["name"])
     return True
 
+def validate(value, comparison, against):
+    ops = {
+        '>': operator.gt,
+        '<': operator.lt,
+        '>=': operator.ge,
+        '<=': operator.le,
+        '==': operator.eq,
+        '!=': operator.ne
+    }
+    if not ops[comparison](value, against):
+        raise ValueError(f"Value {value} failed validation ({comparison}{against})")
+    return value
 
 class SolaredgeModbusHub:
     """Thread safe wrapper class for pymodbus."""
@@ -170,7 +183,11 @@ class SolaredgeModbusHub:
         if not self._sensors:
             return
 
-        update_result = self.read_modbus_data()
+        try:
+            update_result = self.read_modbus_data()
+        except Exception as e:
+            _LOGGER.exception("Error reading modbus data")
+            update_result = False
 
         if update_result:
             for update_callback in self._sensors:
@@ -385,11 +402,11 @@ class SolaredgeModbusHub:
             importedc = decoder.decode_32bit_uint()
             energywsf = decoder.decode_16bit_int()
 
-            exported = self.calculate_value(exported, energywsf)
+            exported = validate(self.calculate_value(exported, energywsf), ">", 0)
             exporteda = self.calculate_value(exporteda, energywsf)
             exportedb = self.calculate_value(exportedb, energywsf)
             exportedc = self.calculate_value(exportedc, energywsf)
-            imported = self.calculate_value(imported, energywsf)
+            imported = validate(self.calculate_value(imported, energywsf), ">", 0)
             importeda = self.calculate_value(importeda, energywsf)
             importedb = self.calculate_value(importedb, energywsf)
             importedc = self.calculate_value(importedc, energywsf)
@@ -527,16 +544,17 @@ class SolaredgeModbusHub:
                 importvarhq4c, abs(energyvarsf)
             )
 
-            validValue = exported > 0
-            try:
-                float(exported)
-            except:
-                validValue = false
+#            validValue = exported > 0
+#            try:
+#                float(exported)
+#            except:
+#                validValue = false
 
-            if validValue:
-                return True
-            else:
-                return False
+#            if validValue:
+#                return True
+#            else:
+#                return False
+            return True
         else:
             return False
 
@@ -616,7 +634,7 @@ class SolaredgeModbusHub:
 
             acenergy = decoder.decode_32bit_uint()
             acenergysf = decoder.decode_16bit_uint()
-            acenergy = self.calculate_value(acenergy, acenergysf)
+            acenergy = validate(self.calculate_value(acenergy, acenergysf), ">", 0)
 
             self.data["acenergy"] = round(acenergy * 0.001, 3)
 
@@ -657,16 +675,17 @@ class SolaredgeModbusHub:
             self.data["statusvendor"] = statusvendor
 
             #create validValue to test if data received is valid
-            validValue = acenergy > 0
-            try:
-                float(acenergy)
-            except:
-                validValue = false
+#            validValue = acenergy > 0
+#            try:
+#                float(acenergy)
+#            except:
+#                validValue = false
 
-            if validValue:
-                return True
-            else:
-                return False
+#            if validValue:
+#                return True
+#            else:
+#                return False
+            return True
         else:
             return False
 
@@ -814,7 +833,8 @@ class SolaredgeModbusHub:
             #0x82 - 2 - SoH %
             battery_SoH = decoder.decode_32bit_float()
             #0x84 - 2 - SoC %
-            battery_SoC = decoder.decode_32bit_float()
+            battery_SoC = validate(decoder.decode_32bit_float(), ">", 0.1)
+            battery_SoC = validate(battery_SoC, "<", 101)
 
             self.data[battery_prefix + 'temp_avg'] = round(tempavg, 1)
             self.data[battery_prefix + 'temp_max'] = round(tempmax, 1)
@@ -842,18 +862,15 @@ class SolaredgeModbusHub:
 
             #create validValue to test if data received is valid
             #validValue = battery_SoC > 0.1
-            if battery_SoC <101 and battery_SoC > 0.1:
-                validValue = True
-            else:
-                validValue = False
-#            try:
-#                float(cumulative_discharged)
-#            except:
-#                validValue = false
+#            if battery_SoC <101 and battery_SoC > 0.1:
+#                validValue = True
+#            else:
+#                validValue = False
 
-            if validValue:
-                return True
-            else:
-                return False
+#            if validValue:
+#                return True
+#            else:
+#                return False
+            return True
         else:
             return False
