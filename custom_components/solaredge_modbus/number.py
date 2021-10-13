@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any
 
 from .const import (
     DOMAIN,
+    CONF_DEVICE_ADDRESS,
     ATTR_MANUFACTURER,
     STORAGE_NUMBER_TYPES,
 )
@@ -10,7 +11,7 @@ from .const import (
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadBuilder
 
-from homeassistant.const import CONF_NAME, CONF_DEVICE_ADDRESS
+from homeassistant.const import CONF_NAME
 from homeassistant.components.number import (
     PLATFORM_SCHEMA,
     NumberEntity,

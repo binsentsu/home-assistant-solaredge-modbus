@@ -2,6 +2,7 @@ import logging
 from typing import Optional, Dict, Any
 from .const import (
     SENSOR_TYPES,
+    CONF_DEVICE_ADDRESS,
     METER1_SENSOR_TYPES,
     METER2_SENSOR_TYPES,
     METER3_SENSOR_TYPES,
@@ -15,7 +16,7 @@ from .const import (
 )
 from datetime import datetime
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_NAME, CONF_DEVICE_ADDRESS, DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR
+from homeassistant.const import CONF_NAME, CONF_ADDRESS, ENERGY_KILO_WATT_HOUR
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     STATE_CLASS_MEASUREMENT,

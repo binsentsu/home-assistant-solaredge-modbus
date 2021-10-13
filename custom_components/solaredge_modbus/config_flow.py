@@ -4,12 +4,13 @@ import re
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_DEVICE_ADDRESS, CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from .const import (
     DOMAIN,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_PORT,
+    CONF_DEVICE_ADDRESS,
     DEFAULT_DEVICE_ADDRESS,
     CONF_READ_METER1,
     CONF_READ_METER2,
