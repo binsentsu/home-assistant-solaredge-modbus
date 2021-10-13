@@ -15,7 +15,7 @@ from .const import (
 )
 from datetime import datetime
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_NAME, DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR
+from homeassistant.const import CONF_NAME, CONF_DEVICE_ADDRESS, DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     STATE_CLASS_MEASUREMENT,
@@ -36,6 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     hub_name = entry.data[CONF_NAME]
+    device_address = entry.data[CONF_DEVICE_ADDRESS]
     hub = hass.data[DOMAIN][hub_name]["hub"]
 
     device_info = {
