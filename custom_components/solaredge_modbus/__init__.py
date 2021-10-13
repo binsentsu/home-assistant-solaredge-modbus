@@ -12,7 +12,7 @@ from pymodbus.payload import BinaryPayloadDecoder
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_DEVICE_ADDRESS, CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
@@ -21,6 +21,7 @@ from .const import (
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_DEVICE_ADDRESS,
+    CONF_DEVICE_ADDRESS,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
@@ -44,7 +45,7 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_PORT): cv.string,
-        vol.Required(CONF_DEVICE_ADDRESS): cv.positive_int,
+        vol.Required(CONF_DEVICE_ADDRESS, default=DEFAULT_DEVICE_ADDRESS): cv.positive_int,
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): cv.boolean,
         vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): cv.boolean,
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,

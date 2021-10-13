@@ -11,6 +11,7 @@ DEFAULT_READ_BATTERY2 = False
 CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
+CONF_DEVICE_ADDRESS = "modbus_device_address"
 CONF_READ_METER1 = "read_meter_1"
 CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"

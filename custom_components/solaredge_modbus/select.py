@@ -3,11 +3,12 @@ from typing import Optional, Dict, Any
 
 from .const import (
     DOMAIN,
+    CONF_DEVICE_ADDRESS,
     ATTR_MANUFACTURER,
     STORAGE_SELECT_TYPES,
 )
 
-from homeassistant.const import CONF_NAME, CONF_DEVICE_ADDRESS
+from homeassistant.const import CONF_NAME
 from homeassistant.components.select import (
     PLATFORM_SCHEMA,
     SelectEntity,
