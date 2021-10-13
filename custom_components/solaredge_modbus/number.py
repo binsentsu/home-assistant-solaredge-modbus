@@ -3,7 +3,6 @@ from typing import Optional, Dict, Any
 
 from .const import (
     DOMAIN,
-    CONF_DEVICE_ADDRESS,
     ATTR_MANUFACTURER,
     STORAGE_NUMBER_TYPES,
 )
@@ -23,7 +22,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     hub_name = entry.data[CONF_NAME]
-    device_address = entry.data[CONF_DEVICE_ADDRESS]
     hub = hass.data[DOMAIN][hub_name]["hub"]
 
     device_info = {
@@ -40,7 +38,6 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                 hub_name,
                 hub,
                 device_info,
-                device_address,
                 number_info[0],
                 number_info[1],
                 number_info[2],
@@ -59,7 +56,6 @@ class SolarEdgeNumber(NumberEntity):
                  platform_name,
                  hub,
                  device_info,
-                 device_address,
                  name,
                  key,
                  register,
@@ -74,7 +70,6 @@ class SolarEdgeNumber(NumberEntity):
         self._key = key
         self._register = register
         self._fmt = fmt
-        self._device_address = device_address
 
         self._attr_min_value = attrs["min"]
         self._attr_max_value = attrs["max"]
@@ -120,7 +115,7 @@ class SolarEdgeNumber(NumberEntity):
         elif self._fmt == "f":
             builder.add_32bit_float(float(value))
 
-        self._hub.write_registers(unit=self._device_address, address=self._register, payload=builder.to_registers())
+        self._hub.write_registers(unit=1, address=self._register, payload=builder.to_registers())
 
         self._hub.data[self._key] = value
         self.async_write_ha_state()

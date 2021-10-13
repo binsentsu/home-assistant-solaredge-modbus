@@ -3,7 +3,6 @@ from typing import Optional, Dict, Any
 
 from .const import (
     DOMAIN,
-    CONF_DEVICE_ADDRESS,
     ATTR_MANUFACTURER,
     STORAGE_SELECT_TYPES,
 )
@@ -20,7 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     hub_name = entry.data[CONF_NAME]
-    device_address = entry.data[CONF_DEVICE_ADDRESS]
     hub = hass.data[DOMAIN][hub_name]["hub"]
 
     device_info = {
@@ -37,7 +35,6 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                 hub_name,
                 hub,
                 device_info,
-                device_address,
                 select_info[0],
                 select_info[1],
                 select_info[2],
@@ -61,7 +58,6 @@ class SolarEdgeSelect(SelectEntity):
                  platform_name,
                  hub,
                  device_info,
-                 device_address,
                  name,
                  key,
                  register,
@@ -75,7 +71,6 @@ class SolarEdgeSelect(SelectEntity):
         self._key = key
         self._register = register
         self._option_dict = options
-        self._device_address = device_address
 
         self._attr_options = list(options.values())
 
@@ -112,7 +107,7 @@ class SolarEdgeSelect(SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         new_mode = get_key(self._option_dict, option)
-        self._hub.write_registers(unit=self._device_address, address=self._register, payload=new_mode)
+        self._hub.write_registers(unit=1, address=self._register, payload=new_mode)
 
         self._hub.data[self._key] = option
         self.async_write_ha_state()

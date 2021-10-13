@@ -2,7 +2,6 @@ import logging
 from typing import Optional, Dict, Any
 from .const import (
     SENSOR_TYPES,
-    CONF_DEVICE_ADDRESS,
     METER1_SENSOR_TYPES,
     METER2_SENSOR_TYPES,
     METER3_SENSOR_TYPES,
@@ -37,7 +36,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     hub_name = entry.data[CONF_NAME]
-    device_address = entry.data[CONF_DEVICE_ADDRESS]
     hub = hass.data[DOMAIN][hub_name]["hub"]
 
     device_info = {
