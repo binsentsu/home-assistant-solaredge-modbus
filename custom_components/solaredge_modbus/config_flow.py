@@ -4,12 +4,13 @@ import re
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_DEVICE_ADDRESS, CONF_SCAN_INTERVAL
 from .const import (
     DOMAIN,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_PORT,
+    DEFAULT_DEVICE_ADDRESS,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
@@ -28,6 +29,7 @@ DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
+        vol.Required(CONF_DEVICE_ADDRESS, default=DEFAULT_DEVICE_ADDRESS): int,
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): bool,
         vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): bool,
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): bool,
