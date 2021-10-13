@@ -544,16 +544,6 @@ class SolaredgeModbusHub:
                 importvarhq4c, abs(energyvarsf)
             )
 
-#            validValue = exported > 0
-#            try:
-#                float(exported)
-#            except:
-#                validValue = false
-
-#            if validValue:
-#                return True
-#            else:
-#                return False
             return True
         else:
             return False
@@ -674,17 +664,6 @@ class SolaredgeModbusHub:
             statusvendor = decoder.decode_16bit_int()
             self.data["statusvendor"] = statusvendor
 
-            #create validValue to test if data received is valid
-#            validValue = acenergy > 0
-#            try:
-#                float(acenergy)
-#            except:
-#                validValue = false
-
-#            if validValue:
-#                return True
-#            else:
-#                return False
             return True
         else:
             return False
@@ -860,17 +839,6 @@ class SolaredgeModbusHub:
             else:
                 self.data[battery_prefix + 'status'] = battery_status
 
-            #create validValue to test if data received is valid
-            #validValue = battery_SoC > 0.1
-#            if battery_SoC <101 and battery_SoC > 0.1:
-#                validValue = True
-#            else:
-#                validValue = False
-
-#            if validValue:
-#                return True
-#            else:
-#                return False
             return True
         else:
             return False
