@@ -113,6 +113,8 @@ class SolarEdgeSensor(SensorEntity):
         self._unit_of_measurement = unit
         self._icon = icon
         self._device_info = device_info
+        # not everything is a measurement, i.e. text status fields
+        #self._attr_state_class = STATE_CLASS_MEASUREMENT
         if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
             self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
             self._attr_device_class = DEVICE_CLASS_ENERGY
@@ -160,12 +162,12 @@ class SolarEdgeSensor(SensorEntity):
         if self._key in self._hub.data:
             return self._hub.data[self._key]
 
-    @property
-    def extra_state_attributes(self):
-        if self._key in ["status"]:
-            if self.state in DEVICE_STATUSES:
-                return {ATTR_STATUS_DESCRIPTION: DEVICE_STATUSES[self.state]}
-        return None
+#    @property
+#   def extra_state_attributes(self):
+#        if self._key in ["status"]:
+#            if self.state in DEVICE_STATUSES:
+#                return {ATTR_STATUS_DESCRIPTION: DEVICE_STATUSES[self.state]}
+#        return None
 
     @property
     def should_poll(self) -> bool:
