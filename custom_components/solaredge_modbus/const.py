@@ -234,6 +234,19 @@ METER3_SENSOR_TYPES = {
     "M3_IMPORT_VARH_Q4_C": ["M3 IMPORT VARH Q4 C", "m3_importvarhq4c", "VARh", None],
 }
 
+# parameter names per sunspec
+#DEVICE_STATUSES = {
+#    1: "I_STATUS_OFF",
+#    2: "I_STATUS_SLEEPING",
+#    3: "I_STATUS_STARTING",
+#    4: "I_STATUS_MPPT",
+#    5: "I_STATUS_THROTTLED",
+#    6: "I_STATUS_SHUTTING_DOWN",
+#    7: "I_STATUS_FAULT",
+#    8: "I_STATUS_STANDBY",
+#}
+
+# English descriptions of parameter names
 DEVICE_STATUSES = {
     1: "Off",
     2: "Sleeping (Auto-Shutdown)",
