@@ -29,6 +29,7 @@ from .const import (
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
     DEVICE_STATUSES,
+    VENDOR_STATUSES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -642,4 +643,10 @@ class SolaredgeModbusHub:
             
             statusvendor = decoder.decode_16bit_int()
             self.data[inverter_prefix + "statusvendor"] = statusvendor
+            
+            if statusvendor in VENDOR_STATUSES:
+                self.data[inverter_prefix + "statusvendor_text"] = VENDOR_STATUSES[statusvendor]
+            else:
+                self.data[inverter_prefix + "statusvendor_text"] = "Unknown"
+
         return True

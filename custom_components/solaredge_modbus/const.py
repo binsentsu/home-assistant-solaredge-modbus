@@ -38,6 +38,7 @@ SENSOR_TYPES = {
     "Status": ["Status", "status", None, None],
     "Status_Text": ["Status Text", "status_text", None, None],
     "Status_Vendor": ["Status Vendor", "statusvendor", None, None],
+    "Status_Vendor_Text": ["Status Vendor Text", "statusvendor_text", None, None],
 }
 
 
