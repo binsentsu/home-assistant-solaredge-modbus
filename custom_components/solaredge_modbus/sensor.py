@@ -7,7 +7,7 @@ from .const import (
     METER3_SENSOR_TYPES,
     DOMAIN,
     ATTR_STATUS_DESCRIPTION,
-    DEVICE_STATUSSES,
+    DEVICE_STATUSES,
     ATTR_MANUFACTURER,
 )
 from datetime import datetime
@@ -113,7 +113,6 @@ class SolarEdgeSensor(SensorEntity):
         self._unit_of_measurement = unit
         self._icon = icon
         self._device_info = device_info
-        self._attr_state_class = STATE_CLASS_MEASUREMENT
         if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
             self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
             self._attr_device_class = DEVICE_CLASS_ENERGY
@@ -163,9 +162,9 @@ class SolarEdgeSensor(SensorEntity):
 
     @property
     def extra_state_attributes(self):
-        if self._key in ["status", "statusvendor"]:
-            if self.state in DEVICE_STATUSSES:
-                return {ATTR_STATUS_DESCRIPTION: DEVICE_STATUSSES[self.state]}
+        if self._key in ["status"]:
+            if self.state in DEVICE_STATUSES:
+                return {ATTR_STATUS_DESCRIPTION: DEVICE_STATUSES[self.state]}
         return None
 
     @property

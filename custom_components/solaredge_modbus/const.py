@@ -1,6 +1,6 @@
 DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
-DEFAULT_SCAN_INTERVAL = 60
+DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_PORT = 1502
 DEFAULT_NUMBER_INVERTERS = 1
 DEFAULT_READ_METER1 = False
@@ -36,6 +36,7 @@ SENSOR_TYPES = {
     "DC_Power": ["DC Power", "dcpower", "W", "mdi:solar-power"],
     "Temp_Sink": ["Temp Sink", "tempsink", "°C", None],
     "Status": ["Status", "status", None, None],
+    "Status_Text": ["Status Text", "status_text", None, None],
     "Status_Vendor": ["Status Vendor", "statusvendor", None, None],
 }
 
@@ -232,12 +233,12 @@ METER3_SENSOR_TYPES = {
     "M3_IMPORT_VARH_Q4_C": ["M3 IMPORT VARH Q4 C", "m3_importvarhq4c", "VARh", None],
 }
 
-DEVICE_STATUSSES = {
+DEVICE_STATUSES = {
     1: "Off",
     2: "Sleeping (Auto-Shutdown)",
     3: "Grid Monitoring",
     4: "Production",
-    5: "Production (curtailed)",
+    5: "Production (Curtailed)",
     6: "Shutting Down",
     7: "Fault",
     8: "Maintenance",
