@@ -234,11 +234,11 @@ METER3_SENSOR_TYPES = {
 
 DEVICE_STATUSSES = {
     1: "Off",
-    2: "Sleeping (auto-shutdown) – Night mode",
-    3: "Grid Monitoring/wake-up",
-    4: "Inverter is ON and producing power",
+    2: "Sleeping (Auto-Shutdown)",
+    3: "Grid Monitoring",
+    4: "Production",
     5: "Production (curtailed)",
-    6: "Shutting down",
+    6: "Shutting Down",
     7: "Fault",
-    8: "Maintenance/setup",
+    8: "Maintenance",
 }
