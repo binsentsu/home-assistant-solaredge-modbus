@@ -12,6 +12,8 @@
           "read_meter_1": "Lese die Stände des Zähler 1 (nur für Modelle mit Zähler)",
           "read_meter_2": "Lese die Stände des Zähler 2 (nur für Modelle mit Zähler)",
           "read_meter_3": "Lese die Stände des Zähler 3 (nur für Modelle mit Zähler)",
+          "read_battery_1": "Lese die Daten der Batterie 1 (nur für Modelle mit Batterie)",
+          "read_battery_2": "Lese die Daten der Batterie 2 (nur für Modelle mit Batterie)",
           "scan_interval": "Das Abfrageintervall der modbus Register in Sekunden"
         }
       }
