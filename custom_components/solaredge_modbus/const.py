@@ -44,7 +44,6 @@ SENSOR_TYPES = {
     "Status_Vendor_Text": ["Status Vendor Text", "statusvendor_text", None, None],
 }
 
-
 METER1_SENSOR_TYPES = {
     "M1_AC_Current": ["M1 AC Current", "m1_accurrent", "A", "mdi:current-ac"],
     "M1_AC_Current_A": ["M1 AC Current_A", "m1_accurrenta", "A", "mdi:current-ac"],
