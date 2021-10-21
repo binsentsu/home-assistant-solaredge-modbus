@@ -99,7 +99,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 meter_sensor_info[3],
             )
             entities.append(sensor)
-            
+
     if hub.read_battery1 == True:   
         for inverter_index in range(hub.number_of_inverters):
             inverter_variable_prefix = "i" + str(inverter_index + 1) + "_"
@@ -116,7 +116,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 )
                 entities.append(sensor)
 
-   if hub.read_battery2 == True:   
+    if hub.read_battery2 == True:   
         for inverter_index in range(hub.number_of_inverters):
             inverter_variable_prefix = "i" + str(inverter_index + 1) + "_"
             inverter_title_prefix = "I" + str(inverter_index + 1) + " "
@@ -207,7 +207,7 @@ class SolarEdgeSensor(SensorEntity):
             if "battery2_attrs" in self._hub.data:
                 return self._hub.data["battery2_attrs"]
         return None
-        
+
     @property
     def should_poll(self) -> bool:
         """Data is delivered by the hub"""
