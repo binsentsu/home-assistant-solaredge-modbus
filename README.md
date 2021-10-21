@@ -1,19 +1,5 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 
-# Multiple Inverter Support
-This fork was created to track the upstream, but with the multiple inverter pull request #12 that wasn't merged. Unfortuantely as of upstream release 1.4.0 I will no longer be able to keep up because of changes that were pulled in to add a bunch of control stuff exceed my Python + Home Assistant skill level. I will keep maintaining this fork where applicable because I need it for my inverter setup, but beyond that hopefully someone with better Python skills will be able to add multiple inverter support upstream.
-
-Important: The inverters must have sequential unit IDs (i.e. 1, 2, 3, ...). It doesn't matter which RS485 bus your inverter chain is on as long as it's configured as Solaredge leader/follower (master/slave in older firmware). If you have meters connected to inverter unit 1 the meter IDs *can* overlap the inverter unit IDs because they're on different busses (the solaredge meter ships with default ID 2).
-
-This integration is developed on a system that consists of two inverters and one meter:
-* Inverters (addressed 1 and 2) on RS485-1
-* Ethernet connected to inverter 1 with modbus/tcp enabled
-* E+I meter (address 2) connected to inverter 1 on RS485-2.
-* Ethernet is also for Solaredge comms - no wireless or cell options
-
-Q: Why don't you have batteries?
-A: Because I have net metering without TOU and I get paid for exported energy, so there was no ROI to invest in a battery system.
-
 # home-assistant-solaredge-modbus
 Home assistant Custom Component for reading data from Solaredge inverter through modbus TCP.
 Implements Inverter registers from https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
