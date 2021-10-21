@@ -15,13 +15,9 @@ from .const import (
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
-    CONF_READ_BATTERY1,
-    CONF_READ_BATTERY2,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
-    DEFAULT_READ_BATTERY1,
-    DEFAULT_READ_BATTERY2
 )
 from homeassistant.core import HomeAssistant, callback
 
@@ -35,8 +31,6 @@ DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): bool,
         vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): bool,
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): bool,
-        vol.Optional(CONF_READ_BATTERY1, default=DEFAULT_READ_BATTERY1): bool,
-        vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): bool,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
     }
 )

@@ -1,20 +1,18 @@
 DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
-DEFAULT_SCAN_INTERVAL = 30
+DEFAULT_SCAN_INTERVAL = 60
 DEFAULT_PORT = 1502
+DEFAULT_NUMBER_INVERTERS = 1
 DEFAULT_READ_METER1 = False
 DEFAULT_READ_METER2 = False
 DEFAULT_READ_METER3 = False
-DEFAULT_READ_BATTERY1 = False
-DEFAULT_READ_BATTERY2 = False
 CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
+CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_READ_METER1 = "read_meter_1"
 CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
-CONF_READ_BATTERY1 = "read_battery_1"
-CONF_READ_BATTERY2 = "read_battery_2"
 
 SENSOR_TYPES = {
     "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac"],
@@ -32,13 +30,15 @@ SENSOR_TYPES = {
     "AC_VA": ["AC VA", "acva", "VA", None],
     "AC_VAR": ["AC VAR", "acvar", "VAR", None],
     "AC_PF": ["AC PF", "acpf", "%", None],
-    "AC_Energy_KWH": ["AC Energy KWH", "acenergy", "kWh", "mdi:solar-power"],
+    "AC_Energy_kWh": ["AC Energy kWh", "acenergy", "kWh", "mdi:solar-power"],
     "DC_Current": ["DC Current", "dccurrent", "A", "mdi:current-dc"],
     "DC_Voltage": ["DC Voltage", "dcvoltage", "V", None],
     "DC_Power": ["DC Power", "dcpower", "W", "mdi:solar-power"],
     "Temp_Sink": ["Temp Sink", "tempsink", "°C", None],
     "Status": ["Status", "status", None, None],
+    "Status_Text": ["Status Text", "status_text", None, None],
     "Status_Vendor": ["Status Vendor", "statusvendor", None, None],
+    "Status_Vendor_Text": ["Status Vendor Text", "statusvendor_text", None, None],
 }
 
 
@@ -234,92 +234,65 @@ METER3_SENSOR_TYPES = {
     "M3_IMPORT_VARH_Q4_C": ["M3 IMPORT VARH Q4 C", "m3_importvarhq4c", "VARh", None],
 }
 
-BATTERY1_SENSOR_TYPES = {
-    "BATTERY1_Temp_avg": ["Battery1 Temp Average", "battery1_temp_avg", "°C", None],
-    "BATTERY1_Temp_max": ["Battery1 Temp Maximum", "battery1_temp_max", "°C", None],
-    "BATTERY1_Voltage": ["Battery1 Voltage", "battery1_voltage", "V", None],
-    "BATTERY1_Current": ["Battery1 Current", "battery1_current", "A", None],
-    "BATTERY1_Power": ["Battery1 Power", "battery1_power", "W", "mdi:battery-charging-100"],
-    "BATTERY1_Discharged": ["Battery1 Discharged", "battery1_energy_discharged", "kWh", None],
-    "BATTERY1_Charged": ["Battery1 Charged", "battery1_energy_charged", "kWh", None],
-    "BATTERY1_Size_max": ["Battery1 Size Max", "battery1_size_max", "kWh", None],
-    "BATTERY1_Size_available": ["Battery1 Size Available", "battery1_size_available", "kWh", None],
-    "BATTERY1_SOH": ["Battery1 State of Health", "battery1_state_of_health", "%", None],
-    "BATTERY1_SOC": ["Battery1 State of Charge", "battery1_state_of_charge", "%", "mdi:battery-high"],
-    "BATTERY1_Status": ["Battery1 Status", "battery1_status", None, None],
-}
+# parameter names per sunspec
+#DEVICE_STATUSES = {
+#    1: "I_STATUS_OFF",
+#    2: "I_STATUS_SLEEPING",
+#    3: "I_STATUS_STARTING",
+#    4: "I_STATUS_MPPT",
+#    5: "I_STATUS_THROTTLED",
+#    6: "I_STATUS_SHUTTING_DOWN",
+#    7: "I_STATUS_FAULT",
+#    8: "I_STATUS_STANDBY",
+#}
 
-BATTERY2_SENSOR_TYPES = {
-    "BATTERY2_Temp_avg": ["Battery2 Temp Average", "battery2_temp_avg", "°C", None],
-    "BATTERY2_Temp_max": ["Battery2 Temp Maximum", "battery2_temp_max", "°C", None],
-    "BATTERY2_Voltage": ["Battery2 Voltage", "battery2_voltage", "V", None],
-    "BATTERY2_Current": ["Battery2 Current", "battery2_current", "A", None],
-    "BATTERY2_Power": ["Battery2 Power", "battery2_power", "W", "mdi:battery-charging-100"],
-    "BATTERY2_Discharged": ["Battery2 Discharged", "battery2_energy_discharged", "kWh", None],
-    "BATTERY2_Charged": ["Battery2 Charged", "battery2_energy_charged", "kWh", None],
-    "BATTERY2_Size_max": ["Battery2 Size Max", "battery2_size_max", "kWh", None],
-    "BATTERY2_Size_available": ["Battery2 Size Available", "battery2_size_available", "kWh", None],
-    "BATTERY2_SOH": ["Battery2 State of Health", "battery2_state_of_health", "%", None],
-    "BATTERY2_SOC": ["Battery2 State of Charge", "battery2_state_of_charge", "%", "mdi:battery-high"],
-    "BATTERY2_Status": ["Battery2 Status", "battery2_status", None, None],
-}
-
-DEVICE_STATUSSES = {
+# English descriptions of parameter names
+DEVICE_STATUSES = {
     1: "Off",
-    2: "Sleeping (auto-shutdown) – Night mode",
-    3: "Grid Monitoring/wake-up",
-    4: "Inverter is ON and producing power",
-    5: "Production (curtailed)",
-    6: "Shutting down",
+    2: "Sleeping (Auto-Shutdown)",
+    3: "Grid Monitoring",
+    4: "Production",
+    5: "Production (Curtailed)",
+    6: "Shutting Down",
     7: "Fault",
-    8: "Maintenance/setup",
+    8: "Maintenance",
 }
 
-BATTERY_STATUSSES = {
-    1: "Off",
-    3: "Charging",
-    4: "Discharging",
-    6: "Idle",
-    10: "Sleep"
+VENDOR_STATUSES = {
+    0: "No Error",
+    17: "Temperature too high",
+    25: "Isolation faults",
+    27: "Hardware error",
+    31: "AC voltage too high",
+    33: "AC voltage too high",
+    32: "AC voltage too low",
+    34: "AC freq. too high",
+    35: "AC freq. too low",
+    41: "AC voltage too low",
+    44: "No country selected",
+    64: "AC voltage too high",
+    65: "AC voltage too high",
+    66: "AC voltage too high",
+    61: "AC voltage too low",
+    62: "AC voltage too low",
+    63: "AC voltage too low",
+    67: "AC voltage too low",
+    68: "AC voltage too low",
+    69: "AC voltage too low",
+    79: "AC freq. too high",
+    80: "AC freq. too high",
+    81: "AC freq. too high",
+    82: "AC freq. too low",
+    83: "AC freq. too low",
+    84: "AC freq. too low",
+    95: "Hardware error",
+    104: "Temperature too high",
+    106: "Hardware error",
+    120: "Hardware error",
+    121: "Isolation faults",
+    125: "Hardware error",
+    126: "Hardware error",
+    150: "Arc fault detected",
+    151: "Arc fault detected",
+    153: "Hardware error",
 }
-
-STOREDGE_CONTROL_MODE = {
-    0: "Disabled",
-    1: "Maximize Self Consumption",
-    2: "Time of Use",
-    3: "Backup Only",
-    4: "Remote Control"
-}
-
-STOREDGE_AC_CHARGE_POLICY = {
-    0: "Disabled",
-    1: "Always Allowed",
-    2: "Fixed Energy Limit",
-    3: "Percent of Production",
-}
-
-STOREDGE_CHARGE_DISCHARGE_MODE = {
-    0: "Off",
-    1: "Charge from excess PV power only",
-    2: "Charge from PV first",
-    3: "Charge from PV and AC",
-    4: "Maximize export",
-    5: "Discharge to match load",
-    7: "Maximize self consumption",
-}
-
-STORAGE_SELECT_TYPES = [
-    ["Storage Control Mode", "storage_contol_mode", 0xE004, STOREDGE_CONTROL_MODE],
-    ["Storage AC Charge Policy", "storage_ac_charge_policy", 0xE005, STOREDGE_AC_CHARGE_POLICY],
-    ["Storage Default Mode", "storage_default_mode", 0xE00A, STOREDGE_CHARGE_DISCHARGE_MODE],
-    ["Storage Remote Command Mode", "storage_remote_command_mode", 0xE00D, STOREDGE_CHARGE_DISCHARGE_MODE],
-]
-
-# TODO Determine the maximum values properly
-STORAGE_NUMBER_TYPES = [
-    ["Storage AC Charge Limit", "storage_ac_charge_limit", 0xE006, "f", {"min": 0, "max": 100000000000}],
-    ["Storage Backup reserved", "storage_backup_reserved", 0xE008, "f", {"min": 0, "max": 100, "unit": "%"}],
-    ["Storage Remote Command Timeout", "storage_remote_command_timeout", 0xE00B, "i", {"min": 0, "max": 86400, "unit": "s"}],
-    ["Storage Remote Charge Limit", "storage_remote_charge_limit", 0xE00E, "f", {"min": 0, "max": 20000, "unit": "W"}],
-    ["Storage Remote Discharge Limit", "storage_remote_discharge_limit", 0xE010, "f", {"min": 0, "max": 20000, "unit": "W"}],
-]
