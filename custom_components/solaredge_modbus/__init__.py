@@ -33,7 +33,7 @@ from .const import (
     DEFAULT_READ_METER3,
     DEFAULT_READ_BATTERY1,
     DEFAULT_READ_BATTERY2,
-    BATTERY_STATUSSES,
+    BATTERY_STATUSES,
     STOREDGE_CONTROL_MODE,
     STOREDGE_AC_CHARGE_POLICY,
     STOREDGE_CHARGE_DISCHARGE_MODE,
@@ -859,8 +859,8 @@ class SolaredgeModbusHub:
                 self.data[battery_prefix + 'current'] = 0
                 self.data[battery_prefix + 'power'] = 0
 
-            if battery_status in BATTERY_STATUSSES:
-                self.data[battery_prefix + 'status'] = BATTERY_STATUSSES[battery_status]
+            if battery_status in BATTERY_STATUSES:
+                self.data[battery_prefix + 'status'] = BATTERY_STATUSES[battery_status]
             else:
                 self.data[battery_prefix + 'status'] = battery_status
 

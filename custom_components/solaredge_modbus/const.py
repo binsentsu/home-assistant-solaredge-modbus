@@ -291,7 +291,7 @@ DEVICE_STATUSES = {
     8: "Maintenance",
 }
 
-BATTERY_STATUSSES = {
+BATTERY_STATUSES = {
     1: "Off",
     3: "Charging",
     4: "Discharging",
