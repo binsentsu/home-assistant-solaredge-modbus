@@ -1,6 +1,6 @@
 DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
-DEFAULT_SCAN_INTERVAL = 60
+DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_PORT = 1502
 DEFAULT_READ_METER1 = False
 DEFAULT_READ_METER2 = False
@@ -28,15 +28,13 @@ SENSOR_TYPES = {
     "AC_VA": ["AC VA", "acva", "VA", None],
     "AC_VAR": ["AC VAR", "acvar", "VAR", None],
     "AC_PF": ["AC PF", "acpf", "%", None],
-    "AC_Energy_kWh": ["AC Energy kWh", "acenergy", "kWh", "mdi:solar-power"],
+    "AC_Energy_KWH": ["AC Energy KWH", "acenergy", "kWh", "mdi:solar-power"],
     "DC_Current": ["DC Current", "dccurrent", "A", "mdi:current-dc"],
     "DC_Voltage": ["DC Voltage", "dcvoltage", "V", None],
     "DC_Power": ["DC Power", "dcpower", "W", "mdi:solar-power"],
     "Temp_Sink": ["Temp Sink", "tempsink", "°C", None],
     "Status": ["Status", "status", None, None],
-    "Status_Text": ["Status Text", "status_text", None, None],
     "Status_Vendor": ["Status Vendor", "statusvendor", None, None],
-    "Status_Vendor_Text": ["Status Vendor Text", "statusvendor_text", None, None],
 }
 
 
@@ -232,14 +230,13 @@ METER3_SENSOR_TYPES = {
     "M3_IMPORT_VARH_Q4_C": ["M3 IMPORT VARH Q4 C", "m3_importvarhq4c", "VARh", None],
 }
 
-# English descriptions of parameter names
 DEVICE_STATUSSES = {
     1: "Off",
-    2: "Sleeping (Auto-Shutdown)",
-    3: "Grid Monitoring",
-    4: "Production",
-    5: "Production (Curtailed)",
-    6: "Shutting Down",
+    2: "Sleeping (auto-shutdown) – Night mode",
+    3: "Grid Monitoring/wake-up",
+    4: "Inverter is ON and producing power",
+    5: "Production (curtailed)",
+    6: "Shutting down",
     7: "Fault",
-    8: "Maintenance",
+    8: "Maintenance/setup",
 }
