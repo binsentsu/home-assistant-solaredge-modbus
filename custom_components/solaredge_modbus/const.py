@@ -9,7 +9,6 @@ DEFAULT_READ_METER3 = False
 DEFAULT_READ_BATTERY1 = False
 DEFAULT_READ_BATTERY2 = False
 CONF_SOLAREDGE_HUB = "solaredge_hub"
-ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
 CONF_NUMBER_INVERTERS = "number_of_inverters"
 CONF_READ_METER1 = "read_meter_1"
