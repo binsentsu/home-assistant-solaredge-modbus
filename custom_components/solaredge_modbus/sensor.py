@@ -5,9 +5,12 @@ from .const import (
     METER1_SENSOR_TYPES,
     METER2_SENSOR_TYPES,
     METER3_SENSOR_TYPES,
+    BATTERY1_SENSOR_TYPES,
+    BATTERY2_SENSOR_TYPES,
     DOMAIN,
     ATTR_STATUS_DESCRIPTION,
     DEVICE_STATUSSES,
+    BATTERY_STATUSSES,
     ATTR_MANUFACTURER,
 )
 from datetime import datetime
@@ -86,6 +89,32 @@ async def async_setup_entry(hass, entry, async_add_entities):
             )
             entities.append(sensor)
 
+    if hub.read_battery1 == True:
+        for sensor_info in BATTERY1_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                sensor_info[0],
+                sensor_info[1],
+                sensor_info[2],
+                sensor_info[3],
+            )
+            entities.append(sensor)
+
+    if hub.read_battery2 == True:
+        for sensor_info in BATTERY2_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                sensor_info[0],
+                sensor_info[1],
+                sensor_info[2],
+                sensor_info[3],
+            )
+            entities.append(sensor)
+
     async_add_entities(entities)
     return True
 
@@ -102,6 +131,7 @@ class SolarEdgeSensor(SensorEntity):
         self._unit_of_measurement = unit
         self._icon = icon
         self._device_info = device_info
+        self._attr_state_class = STATE_CLASS_MEASUREMENT
         if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
             self._attr_state_class = STATE_CLASS_MEASUREMENT
             self._attr_device_class = DEVICE_CLASS_ENERGY
@@ -153,6 +183,12 @@ class SolarEdgeSensor(SensorEntity):
         if self._key in ["status", "statusvendor"]:
             if self.state in DEVICE_STATUSSES:
                 return {ATTR_STATUS_DESCRIPTION: DEVICE_STATUSSES[self.state]}
+        elif "battery1" in self._key:
+            if "battery1_attrs" in self._hub.data:
+                return self._hub.data["battery1_attrs"]
+        elif "battery2" in self._key:
+            if "battery2_attrs" in self._hub.data:
+                return self._hub.data["battery2_attrs"]
         return None
 
     @property
