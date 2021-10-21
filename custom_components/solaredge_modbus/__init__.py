@@ -1,6 +1,7 @@
 """The SolarEdge Modbus Integration."""
 import asyncio
 import logging
+import operator
 import threading
 from datetime import timedelta
 from typing import Optional
@@ -21,13 +22,21 @@ from .const import (
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     CONF_NUMBER_INVERTERS,
-    DEFAULT_NUMBER_INVERTERS,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
+    CONF_READ_BATTERY1,
+    CONF_READ_BATTERY2,
+    DEFAULT_NUMBER_INVERTERS,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
+    DEFAULT_READ_BATTERY1,
+    DEFAULT_READ_BATTERY2,
+    BATTERY_STATUSSES,
+    STOREDGE_CONTROL_MODE,
+    STOREDGE_AC_CHARGE_POLICY,
+    STOREDGE_CHARGE_DISCHARGE_MODE,
     DEVICE_STATUSES,
     VENDOR_STATUSES,
 )
@@ -42,9 +51,12 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): cv.boolean,
         vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): cv.boolean,
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,
+        vol.Optional(CONF_READ_BATTERY1, default=DEFAULT_READ_BATTERY1): cv.boolean,
+        vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): cv.boolean,
         vol.Optional(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): cv.positive_int,
+        
         vol.Optional(
              CONF_NUMBER_INVERTERS, default=DEFAULT_NUMBER_INVERTERS
         ): cv.positive_int,
@@ -55,7 +67,7 @@ CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: vol.Schema({cv.slug: SOLAREDGE_MODBUS_SCHEMA})}, extra=vol.ALLOW_EXTRA
 )
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["number", "select", "sensor"]
 
 
 async def async_setup(hass, config):
@@ -73,15 +85,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
+    read_battery1 = entry.data.get(CONF_READ_BATTERY1, False)
+    read_battery2 = entry.data.get(CONF_READ_BATTERY2, False)
     number_of_inverters = entry.data.get(CONF_NUMBER_INVERTERS, 1)
-    # TODO is there anyway to ensure we don't receive 0 during config flow
+    # TODO is there anyway to ensure we don't receive 0 during config flow?
     if number_of_inverters < 1:
         number_of_inverters = 1
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
     hub = SolaredgeModbusHub(
-        hass, name, host, port, scan_interval, read_meter1, read_meter2, read_meter3, number_of_inverters
+        hass, name, host, port, scan_interval, read_meter1, read_meter2, read_meter3, read_battery1, read_battery2, number_of_inverters
     )
     """Register the hub."""
     hass.data[DOMAIN][name] = {"hub": hub}
@@ -109,6 +123,18 @@ async def async_unload_entry(hass, entry):
     hass.data[DOMAIN].pop(entry.data["name"])
     return True
 
+def validate(value, comparison, against):
+    ops = {
+        '>': operator.gt,
+        '<': operator.lt,
+        '>=': operator.ge,
+        '<=': operator.le,
+        '==': operator.eq,
+        '!=': operator.ne
+    }
+    if not ops[comparison](value, against):
+        raise ValueError(f"Value {value} failed validation ({comparison}{against})")
+    return value
 
 class SolaredgeModbusHub:
     """Thread safe wrapper class for pymodbus."""
@@ -123,6 +149,8 @@ class SolaredgeModbusHub:
         read_meter1=False,
         read_meter2=False,
         read_meter3=False,
+        read_battery1=False,
+        read_battery2=False,
         number_of_inverters=1,
     ):
         """Initialize the Modbus hub."""
@@ -133,6 +161,8 @@ class SolaredgeModbusHub:
         self.read_meter1 = read_meter1
         self.read_meter2 = read_meter2
         self.read_meter3 = read_meter3
+        self.read_battery1 = read_battery1
+        self.read_battery2 = read_battery2
         self.number_of_inverters = number_of_inverters
         self._scan_interval = timedelta(seconds=scan_interval)
         self._unsub_interval_method = None
