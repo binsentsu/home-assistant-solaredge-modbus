@@ -232,20 +232,8 @@ METER3_SENSOR_TYPES = {
     "M3_IMPORT_VARH_Q4_C": ["M3 IMPORT VARH Q4 C", "m3_importvarhq4c", "VARh", None],
 }
 
-# parameter names per sunspec
-#DEVICE_STATUSES = {
-#    1: "I_STATUS_OFF",
-#    2: "I_STATUS_SLEEPING",
-#    3: "I_STATUS_STARTING",
-#    4: "I_STATUS_MPPT",
-#    5: "I_STATUS_THROTTLED",
-#    6: "I_STATUS_SHUTTING_DOWN",
-#    7: "I_STATUS_FAULT",
-#    8: "I_STATUS_STANDBY",
-#}
-
 # English descriptions of parameter names
-DEVICE_STATUSES = {
+DEVICE_STATUSSES = {
     1: "Off",
     2: "Sleeping (Auto-Shutdown)",
     3: "Grid Monitoring",
@@ -254,43 +242,4 @@ DEVICE_STATUSES = {
     6: "Shutting Down",
     7: "Fault",
     8: "Maintenance",
-}
-
-VENDOR_STATUSES = {
-    0: "No Error",
-    17: "Temperature too high",
-    25: "Isolation faults",
-    27: "Hardware error",
-    31: "AC voltage too high",
-    33: "AC voltage too high",
-    32: "AC voltage too low",
-    34: "AC freq. too high",
-    35: "AC freq. too low",
-    41: "AC voltage too low",
-    44: "No country selected",
-    64: "AC voltage too high",
-    65: "AC voltage too high",
-    66: "AC voltage too high",
-    61: "AC voltage too low",
-    62: "AC voltage too low",
-    63: "AC voltage too low",
-    67: "AC voltage too low",
-    68: "AC voltage too low",
-    69: "AC voltage too low",
-    79: "AC freq. too high",
-    80: "AC freq. too high",
-    81: "AC freq. too high",
-    82: "AC freq. too low",
-    83: "AC freq. too low",
-    84: "AC freq. too low",
-    95: "Hardware error",
-    104: "Temperature too high",
-    106: "Hardware error",
-    120: "Hardware error",
-    121: "Isolation faults",
-    125: "Hardware error",
-    126: "Hardware error",
-    150: "Arc fault detected",
-    151: "Arc fault detected",
-    153: "Hardware error",
 }
