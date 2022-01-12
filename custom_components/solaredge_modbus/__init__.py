@@ -402,7 +402,7 @@ class SolaredgeModbusHub:
             importedc = decoder.decode_32bit_uint()
             energywsf = decoder.decode_16bit_int()
 
-            exported = validate(self.calculate_value(exported, energywsf), ">", 0)
+            exported = self.calculate_value(exported, energywsf)
             exporteda = self.calculate_value(exporteda, energywsf)
             exportedb = self.calculate_value(exportedb, energywsf)
             exportedc = self.calculate_value(exportedc, energywsf)
