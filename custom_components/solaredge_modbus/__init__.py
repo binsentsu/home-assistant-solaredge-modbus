@@ -1,6 +1,7 @@
 """The SolarEdge Modbus Integration."""
 import asyncio
 import logging
+import operator
 import threading
 from datetime import timedelta
 from typing import Optional
@@ -114,6 +115,18 @@ async def async_unload_entry(hass, entry):
     hass.data[DOMAIN].pop(entry.data["name"])
     return True
 
+def validate(value, comparison, against):
+    ops = {
+        '>': operator.gt,
+        '<': operator.lt,
+        '>=': operator.ge,
+        '<=': operator.le,
+        '==': operator.eq,
+        '!=': operator.ne
+    }
+    if not ops[comparison](value, against):
+        raise ValueError(f"Value {value} failed validation ({comparison}{against})")
+    return value
 
 class SolaredgeModbusHub:
     """Thread safe wrapper class for pymodbus."""
@@ -176,7 +189,11 @@ class SolaredgeModbusHub:
         if not self._sensors:
             return
 
-        update_result = self.read_modbus_data()
+        try:
+            update_result = self.read_modbus_data()
+        except Exception as e:
+            _LOGGER.exception("Error reading modbus data")
+            update_result = False
 
         if update_result:
             for update_callback in self._sensors:
@@ -391,11 +408,11 @@ class SolaredgeModbusHub:
             importedc = decoder.decode_32bit_uint()
             energywsf = decoder.decode_16bit_int()
 
-            exported = self.calculate_value(exported, energywsf)
+            exported = validate(self.calculate_value(exported, energywsf), ">", 0)
             exporteda = self.calculate_value(exporteda, energywsf)
             exportedb = self.calculate_value(exportedb, energywsf)
             exportedc = self.calculate_value(exportedc, energywsf)
-            imported = self.calculate_value(imported, energywsf)
+            imported = validate(self.calculate_value(imported, energywsf), ">", 0)
             importeda = self.calculate_value(importeda, energywsf)
             importedb = self.calculate_value(importedb, energywsf)
             importedc = self.calculate_value(importedc, energywsf)
@@ -613,7 +630,7 @@ class SolaredgeModbusHub:
 
             acenergy = decoder.decode_32bit_uint()
             acenergysf = decoder.decode_16bit_uint()
-            acenergy = self.calculate_value(acenergy, acenergysf)
+            acenergy = validate(self.calculate_value(acenergy, acenergysf), ">", 0)
 
             self.data["acenergy"] = round(acenergy * 0.001, 3)
 
@@ -781,32 +798,40 @@ class SolaredgeModbusHub:
             )
 
             #0x6C - 2 - avg temp C
-            self.data[battery_prefix + 'temp_avg'] = round(decoder.decode_32bit_float(), 1)
+            tempavg = decoder.decode_32bit_float()
             #0x6E - 2 - max temp C
-            self.data[battery_prefix + 'temp_max'] = round(decoder.decode_32bit_float(), 1)
-
+            tempmax = decoder.decode_32bit_float()
             #0x70 - 2 - inst voltage V
-            self.data[battery_prefix + 'voltage'] = round(decoder.decode_32bit_float(), 3)
+            batteryvoltage = decoder.decode_32bit_float()
             #0x72 - 2 - inst current A
-            self.data[battery_prefix + 'current'] = round(decoder.decode_32bit_float(), 3)
+            batterycurrent = decoder.decode_32bit_float()
             #0x74 - 2 - inst power W
-            self.data[battery_prefix + 'power'] = round(decoder.decode_32bit_float(), 3)
-
+            batterypower = decoder.decode_32bit_float()
             #0x76 - 4 - cumulative discharged (Wh)
-            self.data[battery_prefix + 'energy_discharged'] = round(decoder.decode_64bit_uint() / 1000, 3)
+            cumulative_discharged = decoder.decode_64bit_uint()
             #0x7a - 4 - cumulative charged (Wh)
-            self.data[battery_prefix + 'energy_charged'] = round(decoder.decode_64bit_uint() / 1000, 3)
-
+            cumulative_charged = decoder.decode_64bit_uint()
             #0x7E - 2 - current max size Wh
-            self.data[battery_prefix + 'size_max'] = round(decoder.decode_32bit_float(), 3)
+            battery_max = decoder.decode_32bit_float()
             #0x80 - 2 - available size Wh
-            self.data[battery_prefix + 'size_available'] = round(decoder.decode_32bit_float(), 3)
-
+            battery_availbable = decoder.decode_32bit_float()
             #0x82 - 2 - SoH %
-            self.data[battery_prefix + 'state_of_health'] = round(decoder.decode_32bit_float(), 0)
+            battery_SoH = decoder.decode_32bit_float()
             #0x84 - 2 - SoC %
-            self.data[battery_prefix + 'state_of_charge'] = round(decoder.decode_32bit_float(), 0)
-            #0x86 - 2 - status
+            battery_SoC = validate(decoder.decode_32bit_float(), ">", 0.1)
+            battery_SoC = validate(battery_SoC, "<", 101)
+
+            self.data[battery_prefix + 'temp_avg'] = round(tempavg, 1)
+            self.data[battery_prefix + 'temp_max'] = round(tempmax, 1)
+            self.data[battery_prefix + 'voltage'] = round(batteryvoltage, 3)
+            self.data[battery_prefix + 'current'] = round(batterycurrent, 3)
+            self.data[battery_prefix + 'power'] = round(batterypower, 3)
+            self.data[battery_prefix + 'energy_discharged'] = round(cumulative_discharged / 1000, 3)
+            self.data[battery_prefix + 'energy_charged'] = round(cumulative_charged / 1000, 3)
+            self.data[battery_prefix + 'size_max'] = round(battery_max, 3)
+            self.data[battery_prefix + 'size_available'] = round(battery_availbable, 3)
+            self.data[battery_prefix + 'state_of_health'] = round(battery_SoH, 0)
+            self.data[battery_prefix + 'state_of_charge'] = round(battery_SoC, 0)
             battery_status = decoder.decode_32bit_uint()
 
             # voltage and current are bogus in certain statuses
