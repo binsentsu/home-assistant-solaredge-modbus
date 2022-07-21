@@ -102,11 +102,11 @@ class SolarEdgeNumber(NumberEntity):
         return False
 
     @property
-    def value(self) -> float:
+    def native_value(self) -> float:
         if self._key in self._hub.data:
             return self._hub.data[self._key]
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Change the selected value."""
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
 
