@@ -71,10 +71,10 @@ class SolarEdgeNumber(NumberEntity):
         self._register = register
         self._fmt = fmt
 
-        self._attr_min_value = attrs["min"]
-        self._attr_max_value = attrs["max"]
+        self._attr_native_min_value = attrs["min"]
+        self._attr_native_max_value = attrs["max"]
         if "unit" in attrs.keys():
-            self._attr_unit_of_measurement = attrs["unit"]
+            self._attr_native_unit_of_measurement = attrs["unit"]
 
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
@@ -119,4 +119,3 @@ class SolarEdgeNumber(NumberEntity):
 
         self._hub.data[self._key] = value
         self.async_write_ha_state()
-
