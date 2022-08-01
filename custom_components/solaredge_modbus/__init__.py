@@ -32,6 +32,8 @@ from .const import (
     DEFAULT_READ_BATTERY1,
     DEFAULT_READ_BATTERY2,
     BATTERY_STATUSSES,
+    EXPORT_CONTROL_MODE,
+    EXPORT_CONTROL_LIMIT_MODE,
     STOREDGE_CONTROL_MODE,
     STOREDGE_AC_CHARGE_POLICY,
     STOREDGE_CHARGE_DISCHARGE_MODE
@@ -207,6 +209,16 @@ class SolaredgeModbusHub:
         """Connect client."""
         with self._lock:
             self._client.connect()
+
+    @property
+    def has_meter(self):
+        """Return true if a meter is available"""
+        return self.read_meter1 or self.read_meter2 or self.read_meter3
+
+    @property
+    def has_battery(self):
+        """Return true if a battery is available"""
+        return self.read_battery1 or self.read_battery2
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -669,14 +681,39 @@ class SolaredgeModbusHub:
             return False
 
     def read_modbus_data_storage(self):
-        if not self.read_battery1 and not self.read_battery2:
-            return True
+        if self.has_battery:
+            count = 0x12 # Read storedge block as well
+        elif self.has_meter:
+            count = 4 # Just read export control block
+        else:
+            return True # Nothing to read here
 
-        storage_data = self.read_holding_registers(unit=1, address=57348, count=14)
+        storage_data = self.read_holding_registers(unit=1, address=0xE000, count=count)
         if not storage_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
                 storage_data.registers, byteorder=Endian.Big,wordorder=Endian.Little
             )
+
+            #0xE000 - 1 - Export control mode
+            export_control_mode = decoder.decode_16bit_uint() & 7
+            if export_control_mode in EXPORT_CONTROL_MODE:
+                self.data["export_control_mode"] = EXPORT_CONTROL_MODE[export_control_mode]
+            else:
+                self.data["export_control_mode"] = export_control_mode
+
+            #0xE001 - 1 - Export control limit mode
+            export_control_limit_mode = decoder.decode_16bit_uint() & 1
+            if export_control_limit_mode in EXPORT_CONTROL_MODE:
+                self.data["export_control_limit_mode"] = EXPORT_CONTROL_LIMIT_MODE[export_control_limit_mode]
+            else:
+                self.data["export_control_limit_mode"] = export_control_limit_mode
+
+            #0xE002 - 2 - Export control site limit
+            self.data["export_control_site_limit"] = round(decoder.decode_32bit_float(), 3)
+
+            if not self.has_battery:
+                # Done with the export control block
+                return True
 
             #0xE004 - 1 - storage control mode
             storage_control_mode = decoder.decode_16bit_uint()
