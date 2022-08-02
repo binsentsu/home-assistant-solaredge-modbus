@@ -21,6 +21,8 @@ from .const import (
     DOMAIN,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_MODBUS_ADDRESS,
+    CONF_MODBUS_ADDRESS,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
@@ -46,6 +48,7 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_PORT): cv.string,
+        vol.Optional(CONF_MODBUS_ADDRESS, default=DEFAULT_MODBUS_ADDRESS): cv.positive_int,
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): cv.boolean,
         vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): cv.boolean,
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,
@@ -75,6 +78,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     host = entry.data[CONF_HOST]
     name = entry.data[CONF_NAME]
     port = entry.data[CONF_PORT]
+    address = entry.data.get(CONF_MODBUS_ADDRESS, 1)
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
@@ -85,7 +89,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
     hub = SolaredgeModbusHub(
-        hass, name, host, port, scan_interval, read_meter1, read_meter2, read_meter3, read_battery1, read_battery2
+        hass, name, host, port, address, scan_interval, read_meter1, read_meter2, read_meter3, read_battery1, read_battery2
     )
     """Register the hub."""
     hass.data[DOMAIN][name] = {"hub": hub}
@@ -135,6 +139,7 @@ class SolaredgeModbusHub:
         name,
         host,
         port,
+        address,
         scan_interval,
         read_meter1=False,
         read_meter2=False,
@@ -147,6 +152,7 @@ class SolaredgeModbusHub:
         self._client = ModbusTcpClient(host=host, port=port)
         self._lock = threading.Lock()
         self._name = name
+        self._address = address
         self.read_meter1 = read_meter1
         self.read_meter2 = read_meter2
         self.read_meter3 = read_meter3
@@ -267,7 +273,7 @@ class SolaredgeModbusHub:
     def read_modbus_data_meter(self, meter_prefix, start_address):
         """start reading meter  data """
         meter_data = self.read_holding_registers(
-            unit=1, address=start_address, count=103
+            unit=self._address, address=start_address, count=103
         )
         if not meter_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
@@ -561,7 +567,7 @@ class SolaredgeModbusHub:
             return False
 
     def read_modbus_data_inverter(self):
-        inverter_data = self.read_holding_registers(unit=1, address=40071, count=38)
+        inverter_data = self.read_holding_registers(unit=self._address, address=40071, count=38)
         if not inverter_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
                 inverter_data.registers, byteorder=Endian.Big
@@ -688,7 +694,7 @@ class SolaredgeModbusHub:
         else:
             return True # Nothing to read here
 
-        storage_data = self.read_holding_registers(unit=1, address=0xE000, count=count)
+        storage_data = self.read_holding_registers(unit=self._address, address=0xE000, count=count)
         if not storage_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
                 storage_data.registers, byteorder=Endian.Big,wordorder=Endian.Little
@@ -774,7 +780,7 @@ class SolaredgeModbusHub:
 
     def read_modbus_data_battery(self, battery_prefix, start_address):
         if not battery_prefix + "attrs" in self.data:
-            battery_data = self.read_holding_registers(unit=1, address=start_address, count=0x4C)
+            battery_data = self.read_holding_registers(unit=self._address, address=start_address, count=0x4C)
             if not battery_data.isError():
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     battery_data.registers, byteorder=Endian.Big,wordorder=Endian.Little
@@ -822,7 +828,7 @@ class SolaredgeModbusHub:
 
                 self.data[battery_prefix + "attrs"] = battery_info
 
-        storage_data = self.read_holding_registers(unit=1, address=start_address + 0x6C, count=28)
+        storage_data = self.read_holding_registers(unit=self._address, address=start_address + 0x6C, count=28)
         if not storage_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
                 storage_data.registers, byteorder=Endian.Big,wordorder=Endian.Little
