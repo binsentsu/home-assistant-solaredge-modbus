@@ -22,15 +22,8 @@ CONF_READ_BATTERY2 = "read_battery_2"
 
 SENSOR_TYPES = {
     "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac"],
-    "AC_CurrentA": ["AC Current A", "accurrenta", "A", "mdi:current-ac"],
-    "AC_CurrentB": ["AC Current B", "accurrentb", "A", "mdi:current-ac"],
-    "AC_CurrentC": ["AC Current C", "accurrentc", "A", "mdi:current-ac"],
     "AC_VoltageAB": ["AC Voltage AB", "acvoltageab", "V", None],
-    "AC_VoltageBC": ["AC Voltage BC", "acvoltagebc", "V", None],
-    "AC_VoltageCA": ["AC Voltage CA", "acvoltageca", "V", None],
     "AC_VoltageAN": ["AC Voltage AN", "acvoltagean", "V", None],
-    "AC_VoltageBN": ["AC Voltage BN", "acvoltagebn", "V", None],
-    "AC_VoltageCN": ["AC Voltage CN", "acvoltagecn", "V", None],
     "AC_Power": ["AC Power", "acpower", "W", "mdi:solar-power"],
     "AC_Frequency": ["AC Frequency", "acfreq", "Hz", None],
     "AC_VA": ["AC VA", "acva", "VA", None],
@@ -43,6 +36,17 @@ SENSOR_TYPES = {
     "Temp_Sink": ["Temp Sink", "tempsink", "°C", None],
     "Status": ["Status", "status", None, None],
     "Status_Vendor": ["Status Vendor", "statusvendor", None, None],
+}
+
+
+THREE_PHASE_SENSOR_TYPES = {
+    "AC_CurrentA": ["AC Current A", "accurrenta", "A", "mdi:current-ac"],
+    "AC_CurrentB": ["AC Current B", "accurrentb", "A", "mdi:current-ac"],
+    "AC_CurrentC": ["AC Current C", "accurrentc", "A", "mdi:current-ac"],
+    "AC_VoltageBC": ["AC Voltage BC", "acvoltagebc", "V", None],
+    "AC_VoltageCA": ["AC Voltage CA", "acvoltageca", "V", None],
+    "AC_VoltageBN": ["AC Voltage BN", "acvoltagebn", "V", None],
+    "AC_VoltageCN": ["AC Voltage CN", "acvoltagecn", "V", None],
 }
 
 
