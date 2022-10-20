@@ -855,7 +855,7 @@ class SolaredgeModbusHub:
             #0x82 - 2 - SoH %
             battery_SoH = decoder.decode_32bit_float()
             #0x84 - 2 - SoC %
-            battery_SoC = decoder.decode_32bit_float()
+            battery_SoC = validate(decoder.decode_32bit_float(), ">", 0.0)
             battery_SoC = validate(battery_SoC, "<", 101)
 
             self.data[battery_prefix + 'temp_avg'] = round(tempavg, 1)
