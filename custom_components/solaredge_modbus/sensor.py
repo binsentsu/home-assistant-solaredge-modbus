@@ -2,6 +2,7 @@ import logging
 from typing import Optional, Dict, Any
 from .const import (
     SENSOR_TYPES,
+    THREE_PHASE_SENSOR_TYPES,
     METER1_SENSOR_TYPES,
     METER2_SENSOR_TYPES,
     METER3_SENSOR_TYPES,
@@ -55,6 +56,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
             sensor_info[2],
             sensor_info[3],
         )
+        entities.append(sensor)
+
+    if hub.read_3phase == True:
+        for three_phase_sensor_info in THREE_PHASE_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                three_phase_sensor_info[0],
+                three_phase_sensor_info[1],
+                three_phase_sensor_info[2],
+                three_phase_sensor_info[3],
+            )
         entities.append(sensor)
 
     if hub.read_meter1 == True:

@@ -3,6 +3,7 @@ DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_PORT = 1502
 DEFAULT_MODBUS_ADDRESS = 1
+DEFAULT_READ_3PHASE = False
 DEFAULT_READ_METER1 = False
 DEFAULT_READ_METER2 = False
 DEFAULT_READ_METER3 = False
@@ -12,6 +13,7 @@ CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
 CONF_MODBUS_ADDRESS = "modbus_address"
+CONF_READ_3PHASE = "read_3phase"
 CONF_READ_METER1 = "read_meter_1"
 CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
@@ -20,15 +22,8 @@ CONF_READ_BATTERY2 = "read_battery_2"
 
 SENSOR_TYPES = {
     "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac"],
-    "AC_CurrentA": ["AC Current A", "accurrenta", "A", "mdi:current-ac"],
-    "AC_CurrentB": ["AC Current B", "accurrentb", "A", "mdi:current-ac"],
-    "AC_CurrentC": ["AC Current C", "accurrentc", "A", "mdi:current-ac"],
     "AC_VoltageAB": ["AC Voltage AB", "acvoltageab", "V", None],
-    "AC_VoltageBC": ["AC Voltage BC", "acvoltagebc", "V", None],
-    "AC_VoltageCA": ["AC Voltage CA", "acvoltageca", "V", None],
     "AC_VoltageAN": ["AC Voltage AN", "acvoltagean", "V", None],
-    "AC_VoltageBN": ["AC Voltage BN", "acvoltagebn", "V", None],
-    "AC_VoltageCN": ["AC Voltage CN", "acvoltagecn", "V", None],
     "AC_Power": ["AC Power", "acpower", "W", "mdi:solar-power"],
     "AC_Frequency": ["AC Frequency", "acfreq", "Hz", None],
     "AC_VA": ["AC VA", "acva", "VA", None],
@@ -41,6 +36,17 @@ SENSOR_TYPES = {
     "Temp_Sink": ["Temp Sink", "tempsink", "°C", None],
     "Status": ["Status", "status", None, None],
     "Status_Vendor": ["Status Vendor", "statusvendor", None, None],
+}
+
+
+THREE_PHASE_SENSOR_TYPES = {
+    "AC_CurrentA": ["AC Current A", "accurrenta", "A", "mdi:current-ac"],
+    "AC_CurrentB": ["AC Current B", "accurrentb", "A", "mdi:current-ac"],
+    "AC_CurrentC": ["AC Current C", "accurrentc", "A", "mdi:current-ac"],
+    "AC_VoltageBC": ["AC Voltage BC", "acvoltagebc", "V", None],
+    "AC_VoltageCA": ["AC Voltage CA", "acvoltageca", "V", None],
+    "AC_VoltageBN": ["AC Voltage BN", "acvoltagebn", "V", None],
+    "AC_VoltageCN": ["AC Voltage CN", "acvoltagecn", "V", None],
 }
 
 

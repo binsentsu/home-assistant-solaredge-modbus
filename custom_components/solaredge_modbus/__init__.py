@@ -23,11 +23,13 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_MODBUS_ADDRESS,
     CONF_MODBUS_ADDRESS,
+    CONF_READ_3PHASE,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
     CONF_READ_BATTERY1,
     CONF_READ_BATTERY2,
+    DEFAULT_READ_3PHASE,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
@@ -49,6 +51,7 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_PORT): cv.string,
         vol.Optional(CONF_MODBUS_ADDRESS, default=DEFAULT_MODBUS_ADDRESS): cv.positive_int,
+        vol.Optional(CONF_READ_3PHASE, default=DEFAULT_READ_3PHASE): cv.boolean,
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): cv.boolean,
         vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): cv.boolean,
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,
@@ -80,6 +83,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     port = entry.data[CONF_PORT]
     address = entry.data.get(CONF_MODBUS_ADDRESS, 1)
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
+    read_3phase = entry.data.get(CONF_READ_3PHASE, False)
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
@@ -89,7 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
     hub = SolaredgeModbusHub(
-        hass, name, host, port, address, scan_interval, read_meter1, read_meter2, read_meter3, read_battery1, read_battery2
+        hass, name, host, port, address, scan_interval, read_3phase, read_meter1, read_meter2, read_meter3, read_battery1, read_battery2
     )
     """Register the hub."""
     hass.data[DOMAIN][name] = {"hub": hub}
@@ -141,6 +145,7 @@ class SolaredgeModbusHub:
         port,
         address,
         scan_interval,
+        read_3phase=False,
         read_meter1=False,
         read_meter2=False,
         read_meter3=False,
@@ -153,6 +158,7 @@ class SolaredgeModbusHub:
         self._lock = threading.Lock()
         self._name = name
         self._address = address
+        self.read_3phase = read_3phase
         self.read_meter1 = read_meter1
         self.read_meter2 = read_meter2
         self.read_meter3 = read_meter3
@@ -252,23 +258,24 @@ class SolaredgeModbusHub:
             and self.read_modbus_data_battery2()
         )
 
+    def read_modbus_data_3phase(self):
+        if not self.read_3phase:
+            return True
+
     def read_modbus_data_meter1(self):
         if not self.read_meter1:
             return True
-        else:
-            return self.read_modbus_data_meter("m1_", 40190)
+        return self.read_modbus_data_meter("m1_", 40190)
 
     def read_modbus_data_meter2(self):
         if not self.read_meter2:
             return True
-        else:
-            return self.read_modbus_data_meter("m2_", 40364)
+        return self.read_modbus_data_meter("m2_", 40364)
 
     def read_modbus_data_meter3(self):
         if not self.read_meter3:
             return True
-        else:
-            return self.read_modbus_data_meter("m3_", 40539)
+        return self.read_modbus_data_meter("m3_", 40539)
 
     def read_modbus_data_meter(self, meter_prefix, start_address):
         """start reading meter  data """
@@ -579,14 +586,16 @@ class SolaredgeModbusHub:
             accurrentsf = decoder.decode_16bit_int()
 
             accurrent = self.calculate_value(accurrent, accurrentsf)
-            accurrenta = self.calculate_value(accurrenta, accurrentsf)
-            accurrentb = self.calculate_value(accurrentb, accurrentsf)
-            accurrentc = self.calculate_value(accurrentc, accurrentsf)
+            if self.read_3phase:
+                accurrenta = self.calculate_value(accurrenta, accurrentsf)
+                accurrentb = self.calculate_value(accurrentb, accurrentsf)
+                accurrentc = self.calculate_value(accurrentc, accurrentsf)
 
             self.data["accurrent"] = round(accurrent, abs(accurrentsf))
-            self.data["accurrenta"] = round(accurrenta, abs(accurrentsf))
-            self.data["accurrentb"] = round(accurrentb, abs(accurrentsf))
-            self.data["accurrentc"] = round(accurrentc, abs(accurrentsf))
+            if self.read_3phase:
+                self.data["accurrenta"] = round(accurrenta, abs(accurrentsf))
+                self.data["accurrentb"] = round(accurrentb, abs(accurrentsf))
+                self.data["accurrentc"] = round(accurrentc, abs(accurrentsf))
 
             acvoltageab = decoder.decode_16bit_uint()
             acvoltagebc = decoder.decode_16bit_uint()
@@ -596,19 +605,22 @@ class SolaredgeModbusHub:
             acvoltagecn = decoder.decode_16bit_uint()
             acvoltagesf = decoder.decode_16bit_int()
 
+
             acvoltageab = self.calculate_value(acvoltageab, acvoltagesf)
-            acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
-            acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
             acvoltagean = self.calculate_value(acvoltagean, acvoltagesf)
-            acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
-            acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
+            if self.read_3phase:
+                acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
+                acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
+                acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
+                acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
 
             self.data["acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
-            self.data["acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
-            self.data["acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
             self.data["acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
-            self.data["acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
-            self.data["acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
+            if self.read_3phase:
+                self.data["acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
+                self.data["acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
+                self.data["acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
+                self.data["acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
 
             acpower = decoder.decode_16bit_int()
             acpowersf = decoder.decode_16bit_int()
@@ -769,14 +781,12 @@ class SolaredgeModbusHub:
     def read_modbus_data_battery1(self):
         if not self.read_battery1:
             return True
-        else:
-            return self.read_modbus_data_battery("battery1_", 0xE100)
+        return self.read_modbus_data_battery("battery1_", 0xE100)
 
     def read_modbus_data_battery2(self):
         if not self.read_battery2:
             return True
-        else:
-            return self.read_modbus_data_battery("battery2_", 0xE200)
+        return self.read_modbus_data_battery("battery2_", 0xE200)
 
     def read_modbus_data_battery(self, battery_prefix, start_address):
         if not battery_prefix + "attrs" in self.data:
