@@ -565,7 +565,7 @@ class SolaredgeModbusHub:
 
     def read_modbus_data_inverter(self):
         inverter_data = self.read_holding_registers(unit=self._address, address=40071, count=38)
-        if not inverter_data.isError():
+        if inverter_data.isError():
             return False
 
         decoder = BinaryPayloadDecoder.fromRegisters(
