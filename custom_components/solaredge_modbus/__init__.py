@@ -419,11 +419,11 @@ class SolaredgeModbusHub:
         importedc = decoder.decode_32bit_uint()
         energywsf = decoder.decode_16bit_int()
 
-        exported = validate(self.calculate_value(exported, energywsf), ">=", 0)
+        exported = validate(self.calculate_value(exported, energywsf), ">", 0)
         exporteda = self.calculate_value(exporteda, energywsf)
         exportedb = self.calculate_value(exportedb, energywsf)
         exportedc = self.calculate_value(exportedc, energywsf)
-        imported = validate(self.calculate_value(imported, energywsf), ">=", 0)
+        imported = validate(self.calculate_value(imported, energywsf), ">", 0)
         importeda = self.calculate_value(importeda, energywsf)
         importedb = self.calculate_value(importedb, energywsf)
         importedc = self.calculate_value(importedc, energywsf)
@@ -641,7 +641,7 @@ class SolaredgeModbusHub:
 
         acenergy = decoder.decode_32bit_uint()
         acenergysf = decoder.decode_16bit_uint()
-        acenergy = validate(self.calculate_value(acenergy, acenergysf), ">=", 0)
+        acenergy = validate(self.calculate_value(acenergy, acenergysf), ">", 0)
 
         self.data["acenergy"] = round(acenergy * 0.001, 3)
 
@@ -852,7 +852,7 @@ class SolaredgeModbusHub:
         #0x82 - 2 - SoH %
         battery_SoH = decoder.decode_32bit_float()
         #0x84 - 2 - SoC %
-        battery_SoC = validate(decoder.decode_32bit_float(), ">=", 0.0)
+        battery_SoC = validate(decoder.decode_32bit_float(), ">", 0.0)
         battery_SoC = validate(battery_SoC, "<", 101)
 
         self.data[battery_prefix + 'temp_avg'] = round(tempavg, 1)
