@@ -15,11 +15,12 @@ from .const import (
 )
 from datetime import datetime
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_NAME, DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR
+from homeassistant.const import CONF_NAME, UnitOfEnergy 
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     STATE_CLASS_MEASUREMENT,
     SensorEntity,
+    SensorDeviceClass,
 )
 
 try: # backward-compatibility to 2021.8
@@ -139,9 +140,9 @@ class SolarEdgeSensor(SensorEntity):
         self._icon = icon
         self._device_info = device_info
         self._attr_state_class = STATE_CLASS_MEASUREMENT
-        if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
+        if self._unit_of_measurement == UnitOfEnergy.KILO_WATT_HOUR :
             self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
-            self._attr_device_class = DEVICE_CLASS_ENERGY
+            self._attr_device_class = SensorDeviceClass.ENERGY
             if STATE_CLASS_TOTAL_INCREASING == STATE_CLASS_MEASUREMENT: # compatibility to 2021.8
                 self._attr_last_reset = dt_util.utc_from_timestamp(0)
 
