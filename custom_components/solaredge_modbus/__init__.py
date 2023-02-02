@@ -243,7 +243,6 @@ class SolaredgeModbusHub:
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
         with self._lock:
-            """kwargs = {"unit": unit} if unit else {}"""
             return self._client.read_holding_registers(
                 address=address, count=count, slave=unit
             )
@@ -251,7 +250,6 @@ class SolaredgeModbusHub:
     def write_registers(self, unit, address, payload):
         """Write registers."""
         with self._lock:
-            kwargs = {"unit": unit} if unit else {}
             return self._client.write_registers(
                 address=address, values=payload, slave=unit
             )
