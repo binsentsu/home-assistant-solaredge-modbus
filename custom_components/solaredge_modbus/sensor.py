@@ -15,7 +15,7 @@ from .const import (
 )
 from datetime import datetime
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_NAME, UnitOfEnergy 
+from homeassistant.const import CONF_NAME, UnitOfEnergy, UnitOfPower
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     STATE_CLASS_MEASUREMENT,
@@ -145,6 +145,8 @@ class SolarEdgeSensor(SensorEntity):
             self._attr_device_class = SensorDeviceClass.ENERGY
             if STATE_CLASS_TOTAL_INCREASING == STATE_CLASS_MEASUREMENT: # compatibility to 2021.8
                 self._attr_last_reset = dt_util.utc_from_timestamp(0)
+         if self._unit_of_measurement = UnitOfPower.WATT :
+            self._attr_device_class = SensorDeviceClass.POWER
 
     async def async_added_to_hass(self):
         """Register callbacks."""
