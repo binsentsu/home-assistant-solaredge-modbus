@@ -1,3 +1,10 @@
+from homeassistant.components.sensor import (
+    SensorEntityDescription,
+    SensorDeviceClass,
+    SensorStateClass,
+)
+from homeassistant.const import UnitOfElectricCurrent, UnitOfPower, UnitOfEnergy
+
 DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 30
@@ -18,8 +25,26 @@ CONF_READ_METER3 = "read_meter_3"
 CONF_READ_BATTERY1 = "read_battery_1"
 CONF_READ_BATTERY2 = "read_battery_2"
 
+
+SENSOR_TYPES_NEW: tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        key="accurrent",
+        name="AC Current",
+        device_class=SensorDeviceClass.CURRENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="acenergy",
+        name="AC Energy kWh",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+)
+
 SENSOR_TYPES = {
-    "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac"],
+   # "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac"],
     "AC_CurrentA": ["AC Current A", "accurrenta", "A", "mdi:current-ac"],
     "AC_CurrentB": ["AC Current B", "accurrentb", "A", "mdi:current-ac"],
     "AC_CurrentC": ["AC Current C", "accurrentc", "A", "mdi:current-ac"],
@@ -34,7 +59,7 @@ SENSOR_TYPES = {
     "AC_VA": ["AC VA", "acva", "VA", None],
     "AC_VAR": ["AC VAR", "acvar", "VAR", None],
     "AC_PF": ["AC PF", "acpf", "%", None],
-    "AC_Energy_kWh": ["AC Energy kWh", "acenergy", "kWh", "mdi:solar-power"],
+   # "AC_Energy_kWh": ["AC Energy kWh", "acenergy", "kWh", "mdi:solar-power"],
     "DC_Current": ["DC Current", "dccurrent", "A", "mdi:current-dc"],
     "DC_Voltage": ["DC Voltage", "dcvoltage", "V", None],
     "DC_Power": ["DC Power", "dcpower", "W", "mdi:solar-power"],
@@ -241,13 +266,33 @@ BATTERY1_SENSOR_TYPES = {
     "BATTERY1_Temp_max": ["Battery1 Temp Maximum", "battery1_temp_max", "°C", None],
     "BATTERY1_Voltage": ["Battery1 Voltage", "battery1_voltage", "V", None],
     "BATTERY1_Current": ["Battery1 Current", "battery1_current", "A", None],
-    "BATTERY1_Power": ["Battery1 Power", "battery1_power", "W", "mdi:battery-charging-100"],
-    "BATTERY1_Discharged": ["Battery1 Discharged", "battery1_energy_discharged", "kWh", None],
+    "BATTERY1_Power": [
+        "Battery1 Power",
+        "battery1_power",
+        "W",
+        "mdi:battery-charging-100",
+    ],
+    "BATTERY1_Discharged": [
+        "Battery1 Discharged",
+        "battery1_energy_discharged",
+        "kWh",
+        None,
+    ],
     "BATTERY1_Charged": ["Battery1 Charged", "battery1_energy_charged", "kWh", None],
     "BATTERY1_Size_max": ["Battery1 Size Max", "battery1_size_max", "Wh", None],
-    "BATTERY1_Size_available": ["Battery1 Size Available", "battery1_size_available", "Wh", None],
+    "BATTERY1_Size_available": [
+        "Battery1 Size Available",
+        "battery1_size_available",
+        "Wh",
+        None,
+    ],
     "BATTERY1_SOH": ["Battery1 State of Health", "battery1_state_of_health", "%", None],
-    "BATTERY1_SOC": ["Battery1 State of Charge", "battery1_state_of_charge", "%", "mdi:battery-high"],
+    "BATTERY1_SOC": [
+        "Battery1 State of Charge",
+        "battery1_state_of_charge",
+        "%",
+        "mdi:battery-high",
+    ],
     "BATTERY1_Status": ["Battery1 Status", "battery1_status", None, None],
 }
 
@@ -256,13 +301,33 @@ BATTERY2_SENSOR_TYPES = {
     "BATTERY2_Temp_max": ["Battery2 Temp Maximum", "battery2_temp_max", "°C", None],
     "BATTERY2_Voltage": ["Battery2 Voltage", "battery2_voltage", "V", None],
     "BATTERY2_Current": ["Battery2 Current", "battery2_current", "A", None],
-    "BATTERY2_Power": ["Battery2 Power", "battery2_power", "W", "mdi:battery-charging-100"],
-    "BATTERY2_Discharged": ["Battery2 Discharged", "battery2_energy_discharged", "kWh", None],
+    "BATTERY2_Power": [
+        "Battery2 Power",
+        "battery2_power",
+        "W",
+        "mdi:battery-charging-100",
+    ],
+    "BATTERY2_Discharged": [
+        "Battery2 Discharged",
+        "battery2_energy_discharged",
+        "kWh",
+        None,
+    ],
     "BATTERY2_Charged": ["Battery2 Charged", "battery2_energy_charged", "kWh", None],
     "BATTERY2_Size_max": ["Battery2 Size Max", "battery2_size_max", "Wh", None],
-    "BATTERY2_Size_available": ["Battery2 Size Available", "battery2_size_available", "Wh", None],
+    "BATTERY2_Size_available": [
+        "Battery2 Size Available",
+        "battery2_size_available",
+        "Wh",
+        None,
+    ],
     "BATTERY2_SOH": ["Battery2 State of Health", "battery2_state_of_health", "%", None],
-    "BATTERY2_SOC": ["Battery2 State of Charge", "battery2_state_of_charge", "%", "mdi:battery-high"],
+    "BATTERY2_SOC": [
+        "Battery2 State of Charge",
+        "battery2_state_of_charge",
+        "%",
+        "mdi:battery-high",
+    ],
     "BATTERY2_Status": ["Battery2 Status", "battery2_status", None, None],
 }
 
@@ -277,32 +342,23 @@ DEVICE_STATUSSES = {
     8: "Maintenance/setup",
 }
 
-BATTERY_STATUSSES = {
-    1: "Off",
-    3: "Charging",
-    4: "Discharging",
-    6: "Idle",
-    10: "Sleep"
-}
+BATTERY_STATUSSES = {1: "Off", 3: "Charging", 4: "Discharging", 6: "Idle", 10: "Sleep"}
 
 EXPORT_CONTROL_MODE = {
     0: "Disabled",
     1: "Direct Export Limitation",
     2: "Indirect Export Limitation",
-    4: "Production Limitation"
+    4: "Production Limitation",
 }
 
-EXPORT_CONTROL_LIMIT_MODE = {
-    0: "Total",
-    1: "Per phase"
-}
+EXPORT_CONTROL_LIMIT_MODE = {0: "Total", 1: "Per phase"}
 
 STOREDGE_CONTROL_MODE = {
     0: "Disabled",
     1: "Maximize Self Consumption",
     2: "Time of Use",
     3: "Backup Only",
-    4: "Remote Control"
+    4: "Remote Control",
 }
 
 STOREDGE_AC_CHARGE_POLICY = {
@@ -324,25 +380,81 @@ STOREDGE_CHARGE_DISCHARGE_MODE = {
 
 EXPORT_CONTROL_SELECT_TYPES = [
     ["Export control mode", "export_control_mode", 0xE000, EXPORT_CONTROL_MODE],
-    ["Export control limit mode", "export_control_limit_mode", 0xE001, EXPORT_CONTROL_LIMIT_MODE],
+    [
+        "Export control limit mode",
+        "export_control_limit_mode",
+        0xE001,
+        EXPORT_CONTROL_LIMIT_MODE,
+    ],
 ]
 
 EXPORT_CONTROL_NUMBER_TYPES = [
-    ["Export control site limit", "export_control_site_limit", 0xE002, "f", {"min": 0, "max": 10000, "unit": "W"}],
+    [
+        "Export control site limit",
+        "export_control_site_limit",
+        0xE002,
+        "f",
+        {"min": 0, "max": 10000, "unit": "W"},
+    ],
 ]
 
 STORAGE_SELECT_TYPES = [
     ["Storage Control Mode", "storage_contol_mode", 0xE004, STOREDGE_CONTROL_MODE],
-    ["Storage AC Charge Policy", "storage_ac_charge_policy", 0xE005, STOREDGE_AC_CHARGE_POLICY],
-    ["Storage Default Mode", "storage_default_mode", 0xE00A, STOREDGE_CHARGE_DISCHARGE_MODE],
-    ["Storage Remote Command Mode", "storage_remote_command_mode", 0xE00D, STOREDGE_CHARGE_DISCHARGE_MODE],
+    [
+        "Storage AC Charge Policy",
+        "storage_ac_charge_policy",
+        0xE005,
+        STOREDGE_AC_CHARGE_POLICY,
+    ],
+    [
+        "Storage Default Mode",
+        "storage_default_mode",
+        0xE00A,
+        STOREDGE_CHARGE_DISCHARGE_MODE,
+    ],
+    [
+        "Storage Remote Command Mode",
+        "storage_remote_command_mode",
+        0xE00D,
+        STOREDGE_CHARGE_DISCHARGE_MODE,
+    ],
 ]
 
 # TODO Determine the maximum values properly
 STORAGE_NUMBER_TYPES = [
-    ["Storage AC Charge Limit", "storage_ac_charge_limit", 0xE006, "f", {"min": 0, "max": 100000000000}],
-    ["Storage Backup reserved", "storage_backup_reserved", 0xE008, "f", {"min": 0, "max": 100, "unit": "%"}],
-    ["Storage Remote Command Timeout", "storage_remote_command_timeout", 0xE00B, "i", {"min": 0, "max": 86400, "unit": "s"}],
-    ["Storage Remote Charge Limit", "storage_remote_charge_limit", 0xE00E, "f", {"min": 0, "max": 20000, "unit": "W"}],
-    ["Storage Remote Discharge Limit", "storage_remote_discharge_limit", 0xE010, "f", {"min": 0, "max": 20000, "unit": "W"}],
+    [
+        "Storage AC Charge Limit",
+        "storage_ac_charge_limit",
+        0xE006,
+        "f",
+        {"min": 0, "max": 100000000000},
+    ],
+    [
+        "Storage Backup reserved",
+        "storage_backup_reserved",
+        0xE008,
+        "f",
+        {"min": 0, "max": 100, "unit": "%"},
+    ],
+    [
+        "Storage Remote Command Timeout",
+        "storage_remote_command_timeout",
+        0xE00B,
+        "i",
+        {"min": 0, "max": 86400, "unit": "s"},
+    ],
+    [
+        "Storage Remote Charge Limit",
+        "storage_remote_charge_limit",
+        0xE00E,
+        "f",
+        {"min": 0, "max": 20000, "unit": "W"},
+    ],
+    [
+        "Storage Remote Discharge Limit",
+        "storage_remote_discharge_limit",
+        0xE010,
+        "f",
+        {"min": 0, "max": 20000, "unit": "W"},
+    ],
 ]

@@ -1,5 +1,7 @@
 import logging
 from typing import Optional, Dict, Any
+
+from homeassistant.helpers.typing import StateType
 from .const import (
     SENSOR_TYPES,
     METER1_SENSOR_TYPES,
@@ -12,7 +14,9 @@ from .const import (
     DEVICE_STATUSSES,
     BATTERY_STATUSSES,
     ATTR_MANUFACTURER,
+    SENSOR_TYPES_NEW,
 )
+from . import SolarEdgeEntity, SolaredgeModbusHub
 from datetime import datetime
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import CONF_NAME, UnitOfEnergy, UnitOfPower
@@ -21,12 +25,15 @@ from homeassistant.components.sensor import (
     STATE_CLASS_MEASUREMENT,
     SensorEntity,
     SensorDeviceClass,
+    SensorEntityDescription,
 )
 
-try: # backward-compatibility to 2021.8
+try:  # backward-compatibility to 2021.8
     from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
 except ImportError:
-    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING
+    from homeassistant.components.sensor import (
+        STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING,
+    )
 
 
 from homeassistant.core import callback
@@ -57,6 +64,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
             sensor_info[3],
         )
         entities.append(sensor)
+
+    for sensor_info in SENSOR_TYPES_NEW:
+        entities.append(SolarEdgeSensorNew(hub, sensor_info))
 
     if hub.read_meter1 == True:
         for meter_sensor_info in METER1_SENSOR_TYPES.values():
@@ -127,6 +137,34 @@ async def async_setup_entry(hass, entry, async_add_entities):
     return True
 
 
+class SolarEdgeSensorNew(SolarEdgeEntity, SensorEntity):
+    """Representation of a solaredge sensor"""
+
+    def __init__(
+        self, hub: SolaredgeModbusHub, description: SensorEntityDescription
+    ) -> None:
+        super().__init__(hub)
+        self.entity_description = description
+        self._attr_name = f"{self.hub.hubname} {description.name}"
+        self._attr_unique_id = f"{self.hub.hubname}_{description.key}"
+
+    async def async_added_to_hass(self):
+        """Register callbacks."""
+        self.hub.async_add_solaredge_sensor(self._modbus_data_updated)
+
+    async def async_will_remove_from_hass(self) -> None:
+        self.hub.async_remove_solaredge_sensor(self._modbus_data_updated)
+
+    @property
+    def native_value(self):
+        """Return the value reported by the sensor."""
+        return self.hub.data[self.entity_description.key]
+
+    @callback
+    def _modbus_data_updated(self):
+        self.async_write_ha_state()
+
+
 class SolarEdgeSensor(SensorEntity):
     """Representation of an SolarEdge Modbus sensor."""
 
@@ -140,12 +178,14 @@ class SolarEdgeSensor(SensorEntity):
         self._icon = icon
         self._device_info = device_info
         self._attr_state_class = STATE_CLASS_MEASUREMENT
-        if self._unit_of_measurement == UnitOfEnergy.KILO_WATT_HOUR :
+        if self._unit_of_measurement == UnitOfEnergy.KILO_WATT_HOUR:
             self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
             self._attr_device_class = SensorDeviceClass.ENERGY
-            if STATE_CLASS_TOTAL_INCREASING == STATE_CLASS_MEASUREMENT: # compatibility to 2021.8
+            if (
+                STATE_CLASS_TOTAL_INCREASING == STATE_CLASS_MEASUREMENT
+            ):  # compatibility to 2021.8
                 self._attr_last_reset = dt_util.utc_from_timestamp(0)
-        if self._unit_of_measurement == UnitOfPower.WATT :
+        if self._unit_of_measurement == UnitOfPower.WATT:
             self._attr_device_class = SensorDeviceClass.POWER
 
     async def async_added_to_hass(self):

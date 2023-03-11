@@ -16,12 +16,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
+from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.helpers.event import async_track_time_interval
 from .const import (
     DOMAIN,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_MODBUS_ADDRESS,
+    ATTR_MANUFACTURER,
     CONF_MODBUS_ADDRESS,
     CONF_READ_METER1,
     CONF_READ_METER2,
@@ -165,7 +167,7 @@ class SolaredgeModbusHub:
         self._hass = hass
         self._client = ModbusTcpClient(host=host, port=port)
         self._lock = threading.Lock()
-        self._name = name
+        self.hubname = name
         self._address = address
         self.read_meter1 = read_meter1
         self.read_meter2 = read_meter2
@@ -218,7 +220,7 @@ class SolaredgeModbusHub:
     @property
     def name(self):
         """Return the name of this hub."""
-        return self._name
+        return self.hubname
 
     def close(self):
         """Disconnect client."""
@@ -900,3 +902,15 @@ class SolaredgeModbusHub:
             self.data[battery_prefix + "status"] = battery_status
 
         return True
+
+
+class SolarEdgeEntity(Entity):
+    """Representation of a solaredge entity"""
+
+    def __init__(self, hub: SolaredgeModbusHub) -> None:
+        self.hub = hub
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, hub.name)},
+            manufacturer=ATTR_MANUFACTURER,
+            name=hub.name,
+        )
