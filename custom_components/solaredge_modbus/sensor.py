@@ -1,9 +1,7 @@
 import logging
 from typing import Optional, Dict, Any
 
-from homeassistant.helpers.typing import StateType
 from .const import (
-    SENSOR_TYPES,
     METER1_SENSOR_TYPES,
     METER2_SENSOR_TYPES,
     METER3_SENSOR_TYPES,
@@ -12,16 +10,12 @@ from .const import (
     DOMAIN,
     ATTR_STATUS_DESCRIPTION,
     DEVICE_STATUSSES,
-    BATTERY_STATUSSES,
     ATTR_MANUFACTURER,
     SENSOR_TYPES_NEW,
 )
 from . import SolarEdgeEntity, SolaredgeModbusHub
-from datetime import datetime
-from homeassistant.helpers.entity import Entity
 from homeassistant.const import CONF_NAME, UnitOfEnergy, UnitOfPower
 from homeassistant.components.sensor import (
-    PLATFORM_SCHEMA,
     STATE_CLASS_MEASUREMENT,
     SensorEntity,
     SensorDeviceClass,
@@ -53,22 +47,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
     }
 
     entities = []
-    for sensor_info in SENSOR_TYPES.values():
-        sensor = SolarEdgeSensor(
-            hub_name,
-            hub,
-            device_info,
-            sensor_info[0],
-            sensor_info[1],
-            sensor_info[2],
-            sensor_info[3],
-        )
-        entities.append(sensor)
 
     for sensor_info in SENSOR_TYPES_NEW:
         entities.append(SolarEdgeSensorNew(hub, sensor_info))
 
-    if hub.read_meter1 == True:
+    if hub.read_meter1:
         for meter_sensor_info in METER1_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
@@ -81,7 +64,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             )
             entities.append(sensor)
 
-    if hub.read_meter2 == True:
+    if hub.read_meter2:
         for meter_sensor_info in METER2_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
@@ -94,7 +77,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             )
             entities.append(sensor)
 
-    if hub.read_meter3 == True:
+    if hub.read_meter3:
         for meter_sensor_info in METER3_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
@@ -107,7 +90,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             )
             entities.append(sensor)
 
-    if hub.read_battery1 == True:
+    if hub.read_battery1:
         for sensor_info in BATTERY1_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
@@ -120,7 +103,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             )
             entities.append(sensor)
 
-    if hub.read_battery2 == True:
+    if hub.read_battery2:
         for sensor_info in BATTERY2_SENSOR_TYPES.values():
             sensor = SolarEdgeSensor(
                 hub_name,
@@ -158,7 +141,7 @@ class SolarEdgeSensorNew(SolarEdgeEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the value reported by the sensor."""
-        return self.hub.data[self.entity_description.key]
+        return self.hub.data.get(self.entity_description.key)
 
     @callback
     def _modbus_data_updated(self):
