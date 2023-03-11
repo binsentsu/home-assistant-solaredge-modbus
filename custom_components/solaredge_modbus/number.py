@@ -1,11 +1,15 @@
+"""solaredge number platform"""
 import logging
-from typing import Optional, Dict, Any
 
+from . import (
+    SolarEdgeEntity,
+    SolaredgeModbusHub,
+)
 from .const import (
     DOMAIN,
-    ATTR_MANUFACTURER,
     EXPORT_CONTROL_NUMBER_TYPES,
     STORAGE_NUMBER_TYPES,
+    SolarEdgeNumberDescription,
 )
 
 from pymodbus.constants import Endian
@@ -13,115 +17,65 @@ from pymodbus.payload import BinaryPayloadBuilder
 
 from homeassistant.const import CONF_NAME
 from homeassistant.components.number import (
-    PLATFORM_SCHEMA,
     NumberEntity,
 )
 
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+
+async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> None:
+    """setup number entities"""
     hub_name = entry.data[CONF_NAME]
     hub = hass.data[DOMAIN][hub_name]["hub"]
-
-    device_info = {
-        "identifiers": {(DOMAIN, hub_name)},
-        "name": hub_name,
-        "manufacturer": ATTR_MANUFACTURER,
-    }
 
     entities = []
 
     # If a meter is available add export control
     if hub.has_meter:
         for number_info in EXPORT_CONTROL_NUMBER_TYPES:
-            number = SolarEdgeNumber(
-                hub_name,
-                hub,
-                device_info,
-                number_info[0],
-                number_info[1],
-                number_info[2],
-                number_info[3],
-                number_info[4],
-            )
-            entities.append(number)
+            entities.append(SolarEdgeNumberNew(hub, number_info))
 
     # If a battery is available add storage control
     if hub.has_battery:
         for number_info in STORAGE_NUMBER_TYPES:
-            number = SolarEdgeNumber(
-                hub_name,
-                hub,
-                device_info,
-                number_info[0],
-                number_info[1],
-                number_info[2],
-                number_info[3],
-                number_info[4],
-            )
-            entities.append(number)
+            entities.append(SolarEdgeNumberNew(hub, number_info))
 
     async_add_entities(entities)
     return True
 
-class SolarEdgeNumber(NumberEntity):
-    """Representation of an SolarEdge Modbus number."""
 
-    def __init__(self,
-                 platform_name,
-                 hub,
-                 device_info,
-                 name,
-                 key,
-                 register,
-                 fmt,
-                 attrs
+class SolarEdgeNumberNew(SolarEdgeEntity, NumberEntity):
+    """Solaredge Number Entity"""
+
+    def __init__(
+        self, hub: SolaredgeModbusHub, description: SolarEdgeNumberDescription
     ) -> None:
-        """Initialize the selector."""
-        self._platform_name = platform_name
-        self._hub = hub
-        self._device_info = device_info
-        self._name = name
-        self._key = key
-        self._register = register
-        self._fmt = fmt
-
-        self._attr_native_min_value = attrs["min"]
-        self._attr_native_max_value = attrs["max"]
-        if "unit" in attrs.keys():
-            self._attr_native_unit_of_measurement = attrs["unit"]
+        super().__init__(hub)
+        self.entity_description = description
+        self._attr_name = f"{self.hub.hubname} {description.name}"
+        self._attr_unique_id = f"{self.hub.hubname}_{description.key}"
+        self._register = description.register
+        self._fmt = description.fmt
+        self._attr_native_min_value = description.attrs["min"]
+        self._attr_native_max_value = description.attrs["max"]
 
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
-        self._hub.async_add_solaredge_sensor(self._modbus_data_updated)
+        self.hub.async_add_solaredge_sensor(self._modbus_data_updated)
 
     async def async_will_remove_from_hass(self) -> None:
-        self._hub.async_remove_solaredge_sensor(self._modbus_data_updated)
+        self.hub.async_remove_solaredge_sensor(self._modbus_data_updated)
 
     @callback
     def _modbus_data_updated(self) -> None:
         self.async_write_ha_state()
 
     @property
-    def name(self) -> str:
-        """Return the name."""
-        return f"{self._platform_name} ({self._name})"
-
-    @property
-    def unique_id(self) -> Optional[str]:
-        return f"{self._platform_name}_{self._key}"
-
-    @property
-    def should_poll(self) -> bool:
-        """Data is delivered by the hub"""
-        return False
-
-    @property
     def native_value(self) -> float:
-        if self._key in self._hub.data:
-            return self._hub.data[self._key]
+        if self.entity_description.key in self.hub.data:
+            return self.hub.data[self.entity_description.key]
 
     async def async_set_native_value(self, value: float) -> None:
         """Change the selected value."""
@@ -132,7 +86,9 @@ class SolarEdgeNumber(NumberEntity):
         elif self._fmt == "f":
             builder.add_32bit_float(float(value))
 
-        self._hub.write_registers(unit=1, address=self._register, payload=builder.to_registers())
+        self.hub.write_registers(
+            unit=1, address=self._register, payload=builder.to_registers()
+        )
 
-        self._hub.data[self._key] = value
+        self.hub.data[self.entity_description.key] = value
         self.async_write_ha_state()
