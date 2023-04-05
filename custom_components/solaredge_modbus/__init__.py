@@ -117,6 +117,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass, entry):
     """Unload Solaredge mobus entry."""
+    hub = hass.data[DOMAIN][entry.data["name"]]["hub"]
+    await hub.close()
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.data["name"])
 
@@ -181,7 +183,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         except Exception:
             raise UpdateFailed()
 
-    def close(self):
+    async def close(self):
         """Disconnect client."""
         with self._lock:
             self._client.close()
