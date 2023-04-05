@@ -54,26 +54,21 @@ class SolarEdgeNumberNew(SolarEdgeEntity, NumberEntity):
     ) -> None:
         super().__init__(hub)
         self.entity_description = description
-        self._attr_name = f"{self.hub.hubname} {description.name}"
-        self._attr_unique_id = f"{self.hub.hubname}_{description.key}"
+        self._attr_name = f"{self.hub.name} {description.name}"
+        self._attr_unique_id = f"{self.hub.name}_{description.key}"
         self._register = description.register
         self._fmt = description.fmt
         self._attr_native_min_value = description.attrs["min"]
         self._attr_native_max_value = description.attrs["max"]
 
-    async def async_added_to_hass(self) -> None:
-        """Register callbacks."""
-        self.hub.async_add_solaredge_sensor(self._modbus_data_updated)
-
-    async def async_will_remove_from_hass(self) -> None:
-        self.hub.async_remove_solaredge_sensor(self._modbus_data_updated)
-
     @callback
-    def _modbus_data_updated(self) -> None:
-        self.async_write_ha_state()
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        super()._handle_coordinator_update()
 
     @property
     def native_value(self) -> float:
+        """get native value"""
         if self.entity_description.key in self.hub.data:
             return self.hub.data[self.entity_description.key]
 

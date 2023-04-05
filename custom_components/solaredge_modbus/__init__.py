@@ -18,6 +18,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
     DEFAULT_NAME,
@@ -68,7 +70,7 @@ CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: vol.Schema({cv.slug: SOLAREDGE_MODBUS_SCHEMA})}, extra=vol.ALLOW_EXTRA
 )
 
-PLATFORMS = ["number", "select", "sensor"]
+PLATFORMS = ["sensor", "number", "select"]
 
 
 async def async_setup(hass, config):
@@ -105,34 +107,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         read_battery1,
         read_battery2,
     )
-    """Register the hub."""
+    await hub.async_config_entry_first_refresh()
+
     hass.data[DOMAIN][name] = {"hub": hub}
 
-    for component in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, component)
-        )
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
 async def async_unload_entry(hass, entry):
     """Unload Solaredge mobus entry."""
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(entry, component)
-                for component in PLATFORMS
-            ]
-        )
-    )
-    if not unload_ok:
-        return False
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN].pop(entry.data["name"])
 
-    hass.data[DOMAIN].pop(entry.data["name"])
-    return True
+    return unload_ok
 
 
 def validate(value, comparison, against):
+    """validate a value"""
     ops = {
         ">": operator.gt,
         "<": operator.lt,
@@ -146,7 +138,7 @@ def validate(value, comparison, against):
     return value
 
 
-class SolaredgeModbusHub:
+class SolaredgeModbusHub(DataUpdateCoordinator):
     """Thread safe wrapper class for pymodbus."""
 
     def __init__(
@@ -162,65 +154,32 @@ class SolaredgeModbusHub:
         read_meter3=False,
         read_battery1=False,
         read_battery2=False,
-    ):
+    ) -> None:
         """Initialize the Modbus hub."""
-        self._hass = hass
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=name,
+            update_interval=timedelta(seconds=scan_interval),
+        )
         self._client = ModbusTcpClient(host=host, port=port)
         self._lock = threading.Lock()
-        self.hubname = name
         self._address = address
         self.read_meter1 = read_meter1
         self.read_meter2 = read_meter2
         self.read_meter3 = read_meter3
         self.read_battery1 = read_battery1
         self.read_battery2 = read_battery2
-        self._scan_interval = timedelta(seconds=scan_interval)
-        self._unsub_interval_method = None
-        self._sensors = []
-        self.data = {}
+        self.modbus_data = {}
 
-    @callback
-    def async_add_solaredge_sensor(self, update_callback):
-        """Listen for data updates."""
-        # This is the first sensor, set up interval.
-        if not self._sensors:
-            self.connect()
-            self._unsub_interval_method = async_track_time_interval(
-                self._hass, self.async_refresh_modbus_data, self._scan_interval
-            )
-
-        self._sensors.append(update_callback)
-
-    @callback
-    def async_remove_solaredge_sensor(self, update_callback):
-        """Remove data update."""
-        self._sensors.remove(update_callback)
-
-        if not self._sensors:
-            """stop the interval timer upon removal of last sensor"""
-            self._unsub_interval_method()
-            self._unsub_interval_method = None
-            self.close()
-
-    async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> None:
+    async def _async_update_data(self) -> dict:
         """Time to update."""
-        if not self._sensors:
-            return
 
         try:
-            update_result = self.read_modbus_data()
-        except Exception as e:
-            _LOGGER.exception("Error reading modbus data")
-            update_result = False
-
-        if update_result:
-            for update_callback in self._sensors:
-                update_callback()
-
-    @property
-    def name(self):
-        """Return the name of this hub."""
-        return self.hubname
+            self.read_modbus_data()
+            return self.modbus_data
+        except Exception:
+            raise UpdateFailed()
 
     def close(self):
         """Disconnect client."""
@@ -257,9 +216,11 @@ class SolaredgeModbusHub:
             )
 
     def calculate_value(self, value, sf):
+        """calculate a value using scaling factor"""
         return value * 10**sf
 
     def read_modbus_data(self):
+        """read all modbus data"""
         return (
             self.read_modbus_data_inverter()
             and self.read_modbus_data_meter1()
@@ -271,16 +232,19 @@ class SolaredgeModbusHub:
         )
 
     def read_modbus_data_meter1(self):
+        """read meter 1 modbus data"""
         if self.read_meter1:
             return self.read_modbus_data_meter("m1_", 40190)
         return True
 
     def read_modbus_data_meter2(self):
+        """read meter 2 modbus data"""
         if self.read_meter2:
             return self.read_modbus_data_meter("m2_", 40364)
         return True
 
     def read_modbus_data_meter3(self):
+        """read meter 3 modbus data"""
         if self.read_meter3:
             return self.read_modbus_data_meter("m3_", 40539)
         return True
@@ -307,10 +271,18 @@ class SolaredgeModbusHub:
         accurrentb = self.calculate_value(accurrentb, accurrentsf)
         accurrentc = self.calculate_value(accurrentc, accurrentsf)
 
-        self.data[meter_prefix + "accurrent"] = round(accurrent, abs(accurrentsf))
-        self.data[meter_prefix + "accurrenta"] = round(accurrenta, abs(accurrentsf))
-        self.data[meter_prefix + "accurrentb"] = round(accurrentb, abs(accurrentsf))
-        self.data[meter_prefix + "accurrentc"] = round(accurrentc, abs(accurrentsf))
+        self.modbus_data[meter_prefix + "accurrent"] = round(
+            accurrent, abs(accurrentsf)
+        )
+        self.modbus_data[meter_prefix + "accurrenta"] = round(
+            accurrenta, abs(accurrentsf)
+        )
+        self.modbus_data[meter_prefix + "accurrentb"] = round(
+            accurrentb, abs(accurrentsf)
+        )
+        self.modbus_data[meter_prefix + "accurrentc"] = round(
+            accurrentc, abs(accurrentsf)
+        )
 
         acvoltageln = decoder.decode_16bit_int()
         acvoltagean = decoder.decode_16bit_int()
@@ -331,21 +303,37 @@ class SolaredgeModbusHub:
         acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
         acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
 
-        self.data[meter_prefix + "acvoltageln"] = round(acvoltageln, abs(acvoltagesf))
-        self.data[meter_prefix + "acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
-        self.data[meter_prefix + "acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
-        self.data[meter_prefix + "acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
-        self.data[meter_prefix + "acvoltagell"] = round(acvoltagell, abs(acvoltagesf))
-        self.data[meter_prefix + "acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
-        self.data[meter_prefix + "acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
-        self.data[meter_prefix + "acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
+        self.modbus_data[meter_prefix + "acvoltageln"] = round(
+            acvoltageln, abs(acvoltagesf)
+        )
+        self.modbus_data[meter_prefix + "acvoltagean"] = round(
+            acvoltagean, abs(acvoltagesf)
+        )
+        self.modbus_data[meter_prefix + "acvoltagebn"] = round(
+            acvoltagebn, abs(acvoltagesf)
+        )
+        self.modbus_data[meter_prefix + "acvoltagecn"] = round(
+            acvoltagecn, abs(acvoltagesf)
+        )
+        self.modbus_data[meter_prefix + "acvoltagell"] = round(
+            acvoltagell, abs(acvoltagesf)
+        )
+        self.modbus_data[meter_prefix + "acvoltageab"] = round(
+            acvoltageab, abs(acvoltagesf)
+        )
+        self.modbus_data[meter_prefix + "acvoltagebc"] = round(
+            acvoltagebc, abs(acvoltagesf)
+        )
+        self.modbus_data[meter_prefix + "acvoltageca"] = round(
+            acvoltageca, abs(acvoltagesf)
+        )
 
         acfreq = decoder.decode_16bit_int()
         acfreqsf = decoder.decode_16bit_int()
 
         acfreq = self.calculate_value(acfreq, acfreqsf)
 
-        self.data[meter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
+        self.modbus_data[meter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
 
         acpower = decoder.decode_16bit_int()
         acpowera = decoder.decode_16bit_int()
@@ -358,10 +346,10 @@ class SolaredgeModbusHub:
         acpowerb = self.calculate_value(acpowerb, acpowersf)
         acpowerc = self.calculate_value(acpowerc, acpowersf)
 
-        self.data[meter_prefix + "acpower"] = round(acpower, abs(acpowersf))
-        self.data[meter_prefix + "acpowera"] = round(acpowera, abs(acpowersf))
-        self.data[meter_prefix + "acpowerb"] = round(acpowerb, abs(acpowersf))
-        self.data[meter_prefix + "acpowerc"] = round(acpowerc, abs(acpowersf))
+        self.modbus_data[meter_prefix + "acpower"] = round(acpower, abs(acpowersf))
+        self.modbus_data[meter_prefix + "acpowera"] = round(acpowera, abs(acpowersf))
+        self.modbus_data[meter_prefix + "acpowerb"] = round(acpowerb, abs(acpowersf))
+        self.modbus_data[meter_prefix + "acpowerc"] = round(acpowerc, abs(acpowersf))
 
         acva = decoder.decode_16bit_int()
         acvaa = decoder.decode_16bit_int()
@@ -374,10 +362,10 @@ class SolaredgeModbusHub:
         acvab = self.calculate_value(acvab, acvasf)
         acvac = self.calculate_value(acvac, acvasf)
 
-        self.data[meter_prefix + "acva"] = round(acva, abs(acvasf))
-        self.data[meter_prefix + "acvaa"] = round(acvaa, abs(acvasf))
-        self.data[meter_prefix + "acvab"] = round(acvab, abs(acvasf))
-        self.data[meter_prefix + "acvac"] = round(acvac, abs(acvasf))
+        self.modbus_data[meter_prefix + "acva"] = round(acva, abs(acvasf))
+        self.modbus_data[meter_prefix + "acvaa"] = round(acvaa, abs(acvasf))
+        self.modbus_data[meter_prefix + "acvab"] = round(acvab, abs(acvasf))
+        self.modbus_data[meter_prefix + "acvac"] = round(acvac, abs(acvasf))
 
         acvar = decoder.decode_16bit_int()
         acvara = decoder.decode_16bit_int()
@@ -390,10 +378,10 @@ class SolaredgeModbusHub:
         acvarb = self.calculate_value(acvarb, acvarsf)
         acvarc = self.calculate_value(acvarc, acvarsf)
 
-        self.data[meter_prefix + "acvar"] = round(acvar, abs(acvarsf))
-        self.data[meter_prefix + "acvara"] = round(acvara, abs(acvarsf))
-        self.data[meter_prefix + "acvarb"] = round(acvarb, abs(acvarsf))
-        self.data[meter_prefix + "acvarc"] = round(acvarc, abs(acvarsf))
+        self.modbus_data[meter_prefix + "acvar"] = round(acvar, abs(acvarsf))
+        self.modbus_data[meter_prefix + "acvara"] = round(acvara, abs(acvarsf))
+        self.modbus_data[meter_prefix + "acvarb"] = round(acvarb, abs(acvarsf))
+        self.modbus_data[meter_prefix + "acvarc"] = round(acvarc, abs(acvarsf))
 
         acpf = decoder.decode_16bit_int()
         acpfa = decoder.decode_16bit_int()
@@ -406,10 +394,10 @@ class SolaredgeModbusHub:
         acpfb = self.calculate_value(acpfb, acpfsf)
         acpfc = self.calculate_value(acpfc, acpfsf)
 
-        self.data[meter_prefix + "acpf"] = round(acpf, abs(acpfsf))
-        self.data[meter_prefix + "acpfa"] = round(acpfa, abs(acpfsf))
-        self.data[meter_prefix + "acpfb"] = round(acpfb, abs(acpfsf))
-        self.data[meter_prefix + "acpfc"] = round(acpfc, abs(acpfsf))
+        self.modbus_data[meter_prefix + "acpf"] = round(acpf, abs(acpfsf))
+        self.modbus_data[meter_prefix + "acpfa"] = round(acpfa, abs(acpfsf))
+        self.modbus_data[meter_prefix + "acpfb"] = round(acpfb, abs(acpfsf))
+        self.modbus_data[meter_prefix + "acpfc"] = round(acpfc, abs(acpfsf))
 
         exported = decoder.decode_32bit_uint()
         exporteda = decoder.decode_32bit_uint()
@@ -430,14 +418,14 @@ class SolaredgeModbusHub:
         importedb = self.calculate_value(importedb, energywsf)
         importedc = self.calculate_value(importedc, energywsf)
 
-        self.data[meter_prefix + "exported"] = round(exported * 0.001, 3)
-        self.data[meter_prefix + "exporteda"] = round(exporteda * 0.001, 3)
-        self.data[meter_prefix + "exportedb"] = round(exportedb * 0.001, 3)
-        self.data[meter_prefix + "exportedc"] = round(exportedc * 0.001, 3)
-        self.data[meter_prefix + "imported"] = round(imported * 0.001, 3)
-        self.data[meter_prefix + "importeda"] = round(importeda * 0.001, 3)
-        self.data[meter_prefix + "importedb"] = round(importedb * 0.001, 3)
-        self.data[meter_prefix + "importedc"] = round(importedc * 0.001, 3)
+        self.modbus_data[meter_prefix + "exported"] = round(exported * 0.001, 3)
+        self.modbus_data[meter_prefix + "exporteda"] = round(exporteda * 0.001, 3)
+        self.modbus_data[meter_prefix + "exportedb"] = round(exportedb * 0.001, 3)
+        self.modbus_data[meter_prefix + "exportedc"] = round(exportedc * 0.001, 3)
+        self.modbus_data[meter_prefix + "imported"] = round(imported * 0.001, 3)
+        self.modbus_data[meter_prefix + "importeda"] = round(importeda * 0.001, 3)
+        self.modbus_data[meter_prefix + "importedb"] = round(importedb * 0.001, 3)
+        self.modbus_data[meter_prefix + "importedc"] = round(importedc * 0.001, 3)
 
         exportedva = decoder.decode_32bit_uint()
         exportedvaa = decoder.decode_32bit_uint()
@@ -458,14 +446,30 @@ class SolaredgeModbusHub:
         importedvab = self.calculate_value(importedvab, energyvasf)
         importedvac = self.calculate_value(importedvac, energyvasf)
 
-        self.data[meter_prefix + "exportedva"] = round(exportedva, abs(energyvasf))
-        self.data[meter_prefix + "exportedvaa"] = round(exportedvaa, abs(energyvasf))
-        self.data[meter_prefix + "exportedvab"] = round(exportedvab, abs(energyvasf))
-        self.data[meter_prefix + "exportedvac"] = round(exportedvac, abs(energyvasf))
-        self.data[meter_prefix + "importedva"] = round(importedva, abs(energyvasf))
-        self.data[meter_prefix + "importedvaa"] = round(importedvaa, abs(energyvasf))
-        self.data[meter_prefix + "importedvab"] = round(importedvab, abs(energyvasf))
-        self.data[meter_prefix + "importedvac"] = round(importedvac, abs(energyvasf))
+        self.modbus_data[meter_prefix + "exportedva"] = round(
+            exportedva, abs(energyvasf)
+        )
+        self.modbus_data[meter_prefix + "exportedvaa"] = round(
+            exportedvaa, abs(energyvasf)
+        )
+        self.modbus_data[meter_prefix + "exportedvab"] = round(
+            exportedvab, abs(energyvasf)
+        )
+        self.modbus_data[meter_prefix + "exportedvac"] = round(
+            exportedvac, abs(energyvasf)
+        )
+        self.modbus_data[meter_prefix + "importedva"] = round(
+            importedva, abs(energyvasf)
+        )
+        self.modbus_data[meter_prefix + "importedvaa"] = round(
+            importedvaa, abs(energyvasf)
+        )
+        self.modbus_data[meter_prefix + "importedvab"] = round(
+            importedvab, abs(energyvasf)
+        )
+        self.modbus_data[meter_prefix + "importedvac"] = round(
+            importedvac, abs(energyvasf)
+        )
 
         importvarhq1 = decoder.decode_32bit_uint()
         importvarhq1a = decoder.decode_32bit_uint()
@@ -502,50 +506,59 @@ class SolaredgeModbusHub:
         importvarhq4b = self.calculate_value(importvarhq4b, energyvarsf)
         importvarhq4c = self.calculate_value(importvarhq4c, energyvarsf)
 
-        self.data[meter_prefix + "importvarhq1"] = round(importvarhq1, abs(energyvarsf))
-        self.data[meter_prefix + "importvarhq1a"] = round(
+        self.modbus_data[meter_prefix + "importvarhq1"] = round(
+            importvarhq1, abs(energyvarsf)
+        )
+        self.modbus_data[meter_prefix + "importvarhq1a"] = round(
             importvarhq1a, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq1b"] = round(
+        self.modbus_data[meter_prefix + "importvarhq1b"] = round(
             importvarhq1b, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq1c"] = round(
+        self.modbus_data[meter_prefix + "importvarhq1c"] = round(
             importvarhq1c, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq2"] = round(importvarhq2, abs(energyvarsf))
-        self.data[meter_prefix + "importvarhq2a"] = round(
+        self.modbus_data[meter_prefix + "importvarhq2"] = round(
+            importvarhq2, abs(energyvarsf)
+        )
+        self.modbus_data[meter_prefix + "importvarhq2a"] = round(
             importvarhq2a, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq2b"] = round(
+        self.modbus_data[meter_prefix + "importvarhq2b"] = round(
             importvarhq2b, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq2c"] = round(
+        self.modbus_data[meter_prefix + "importvarhq2c"] = round(
             importvarhq2c, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq3"] = round(importvarhq3, abs(energyvarsf))
-        self.data[meter_prefix + "importvarhq3a"] = round(
+        self.modbus_data[meter_prefix + "importvarhq3"] = round(
+            importvarhq3, abs(energyvarsf)
+        )
+        self.modbus_data[meter_prefix + "importvarhq3a"] = round(
             importvarhq3a, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq3b"] = round(
+        self.modbus_data[meter_prefix + "importvarhq3b"] = round(
             importvarhq3b, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq3c"] = round(
+        self.modbus_data[meter_prefix + "importvarhq3c"] = round(
             importvarhq3c, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq4"] = round(importvarhq4, abs(energyvarsf))
-        self.data[meter_prefix + "importvarhq4a"] = round(
+        self.modbus_data[meter_prefix + "importvarhq4"] = round(
+            importvarhq4, abs(energyvarsf)
+        )
+        self.modbus_data[meter_prefix + "importvarhq4a"] = round(
             importvarhq4a, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq4b"] = round(
+        self.modbus_data[meter_prefix + "importvarhq4b"] = round(
             importvarhq4b, abs(energyvarsf)
         )
-        self.data[meter_prefix + "importvarhq4c"] = round(
+        self.modbus_data[meter_prefix + "importvarhq4c"] = round(
             importvarhq4c, abs(energyvarsf)
         )
 
         return True
 
     def read_modbus_data_inverter(self):
+        """read inverter data"""
         inverter_data = self.read_holding_registers(
             unit=self._address, address=40071, count=38
         )
@@ -566,10 +579,10 @@ class SolaredgeModbusHub:
         accurrentb = self.calculate_value(accurrentb, accurrentsf)
         accurrentc = self.calculate_value(accurrentc, accurrentsf)
 
-        self.data["accurrent"] = round(accurrent, abs(accurrentsf))
-        self.data["accurrenta"] = round(accurrenta, abs(accurrentsf))
-        self.data["accurrentb"] = round(accurrentb, abs(accurrentsf))
-        self.data["accurrentc"] = round(accurrentc, abs(accurrentsf))
+        self.modbus_data["accurrent"] = round(accurrent, abs(accurrentsf))
+        self.modbus_data["accurrenta"] = round(accurrenta, abs(accurrentsf))
+        self.modbus_data["accurrentb"] = round(accurrentb, abs(accurrentsf))
+        self.modbus_data["accurrentc"] = round(accurrentc, abs(accurrentsf))
 
         acvoltageab = decoder.decode_16bit_uint()
         acvoltagebc = decoder.decode_16bit_uint()
@@ -586,66 +599,66 @@ class SolaredgeModbusHub:
         acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
         acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
 
-        self.data["acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
-        self.data["acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
-        self.data["acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
-        self.data["acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
-        self.data["acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
-        self.data["acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
+        self.modbus_data["acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
+        self.modbus_data["acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
+        self.modbus_data["acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
+        self.modbus_data["acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
+        self.modbus_data["acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
+        self.modbus_data["acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
 
         acpower = decoder.decode_16bit_int()
         acpowersf = decoder.decode_16bit_int()
         acpower = self.calculate_value(acpower, acpowersf)
 
-        self.data["acpower"] = round(acpower, abs(acpowersf))
+        self.modbus_data["acpower"] = round(acpower, abs(acpowersf))
 
         acfreq = decoder.decode_16bit_uint()
         acfreqsf = decoder.decode_16bit_int()
         acfreq = self.calculate_value(acfreq, acfreqsf)
 
-        self.data["acfreq"] = round(acfreq, abs(acfreqsf))
+        self.modbus_data["acfreq"] = round(acfreq, abs(acfreqsf))
 
         acva = decoder.decode_16bit_int()
         acvasf = decoder.decode_16bit_int()
         acva = self.calculate_value(acva, acvasf)
 
-        self.data["acva"] = round(acva, abs(acvasf))
+        self.modbus_data["acva"] = round(acva, abs(acvasf))
 
         acvar = decoder.decode_16bit_int()
         acvarsf = decoder.decode_16bit_int()
         acvar = self.calculate_value(acvar, acvarsf)
 
-        self.data["acvar"] = round(acvar, abs(acvarsf))
+        self.modbus_data["acvar"] = round(acvar, abs(acvarsf))
 
         acpf = decoder.decode_16bit_int()
         acpfsf = decoder.decode_16bit_int()
         acpf = self.calculate_value(acpf, acpfsf)
 
-        self.data["acpf"] = round(acpf, abs(acpfsf))
+        self.modbus_data["acpf"] = round(acpf, abs(acpfsf))
 
         acenergy = decoder.decode_32bit_uint()
         acenergysf = decoder.decode_16bit_uint()
         acenergy = validate(self.calculate_value(acenergy, acenergysf), ">", 0)
 
-        self.data["acenergy"] = round(acenergy * 0.001, 3)
+        self.modbus_data["acenergy"] = round(acenergy * 0.001, 3)
 
         dccurrent = decoder.decode_16bit_uint()
         dccurrentsf = decoder.decode_16bit_int()
         dccurrent = self.calculate_value(dccurrent, dccurrentsf)
 
-        self.data["dccurrent"] = round(dccurrent, abs(dccurrentsf))
+        self.modbus_data["dccurrent"] = round(dccurrent, abs(dccurrentsf))
 
         dcvoltage = decoder.decode_16bit_uint()
         dcvoltagesf = decoder.decode_16bit_int()
         dcvoltage = self.calculate_value(dcvoltage, dcvoltagesf)
 
-        self.data["dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
+        self.modbus_data["dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
 
         dcpower = decoder.decode_16bit_int()
         dcpowersf = decoder.decode_16bit_int()
         dcpower = self.calculate_value(dcpower, dcpowersf)
 
-        self.data["dcpower"] = round(dcpower, abs(dcpowersf))
+        self.modbus_data["dcpower"] = round(dcpower, abs(dcpowersf))
 
         # skip register
         decoder.skip_bytes(2)
@@ -658,16 +671,17 @@ class SolaredgeModbusHub:
         tempsf = decoder.decode_16bit_int()
         tempsink = self.calculate_value(tempsink, tempsf)
 
-        self.data["tempsink"] = round(tempsink, abs(tempsf))
+        self.modbus_data["tempsink"] = round(tempsink, abs(tempsf))
 
         status = decoder.decode_16bit_int()
-        self.data["status"] = status
+        self.modbus_data["status"] = status
         statusvendor = decoder.decode_16bit_int()
-        self.data["statusvendor"] = statusvendor
+        self.modbus_data["statusvendor"] = statusvendor
 
         return True
 
     def read_modbus_data_storage(self):
+        """read storage data"""
         if self.has_battery:
             count = 0x12  # Read storedge block as well
         elif self.has_meter:
@@ -686,23 +700,25 @@ class SolaredgeModbusHub:
             # 0xE000 - 1 - Export control mode
             export_control_mode = decoder.decode_16bit_uint() & 7
             if export_control_mode in EXPORT_CONTROL_MODE:
-                self.data["export_control_mode"] = EXPORT_CONTROL_MODE[
+                self.modbus_data["export_control_mode"] = EXPORT_CONTROL_MODE[
                     export_control_mode
                 ]
             else:
-                self.data["export_control_mode"] = export_control_mode
+                self.modbus_data["export_control_mode"] = export_control_mode
 
             # 0xE001 - 1 - Export control limit mode
             export_control_limit_mode = decoder.decode_16bit_uint() & 1
             if export_control_limit_mode in EXPORT_CONTROL_MODE:
-                self.data["export_control_limit_mode"] = EXPORT_CONTROL_LIMIT_MODE[
-                    export_control_limit_mode
-                ]
+                self.modbus_data[
+                    "export_control_limit_mode"
+                ] = EXPORT_CONTROL_LIMIT_MODE[export_control_limit_mode]
             else:
-                self.data["export_control_limit_mode"] = export_control_limit_mode
+                self.modbus_data[
+                    "export_control_limit_mode"
+                ] = export_control_limit_mode
 
             # 0xE002 - 2 - Export control site limit
-            self.data["export_control_site_limit"] = round(
+            self.modbus_data["export_control_site_limit"] = round(
                 decoder.decode_32bit_float(), 3
             )
 
@@ -713,76 +729,83 @@ class SolaredgeModbusHub:
             # 0xE004 - 1 - storage control mode
             storage_control_mode = decoder.decode_16bit_uint()
             if storage_control_mode in STOREDGE_CONTROL_MODE:
-                self.data["storage_contol_mode"] = STOREDGE_CONTROL_MODE[
+                self.modbus_data["storage_contol_mode"] = STOREDGE_CONTROL_MODE[
                     storage_control_mode
                 ]
             else:
-                self.data["storage_contol_mode"] = storage_control_mode
+                self.modbus_data["storage_contol_mode"] = storage_control_mode
 
             # 0xE005 - 1 - storage ac charge policy
             storage_ac_charge_policy = decoder.decode_16bit_uint()
             if storage_ac_charge_policy in STOREDGE_AC_CHARGE_POLICY:
-                self.data["storage_ac_charge_policy"] = STOREDGE_AC_CHARGE_POLICY[
-                    storage_ac_charge_policy
-                ]
+                self.modbus_data[
+                    "storage_ac_charge_policy"
+                ] = STOREDGE_AC_CHARGE_POLICY[storage_ac_charge_policy]
             else:
-                self.data["storage_ac_charge_policy"] = storage_ac_charge_policy
+                self.modbus_data["storage_ac_charge_policy"] = storage_ac_charge_policy
 
             # 0xE006 - 2 - storage AC charge limit (kWh or %)
-            self.data["storage_ac_charge_limit"] = round(
+            self.modbus_data["storage_ac_charge_limit"] = round(
                 decoder.decode_32bit_float(), 3
             )
 
             # 0xE008 - 2 - storage backup reserved capacity (%)
-            self.data["storage_backup_reserved"] = round(
+            self.modbus_data["storage_backup_reserved"] = round(
                 decoder.decode_32bit_float(), 3
             )
 
             # 0xE00A - 1 - storage charge / discharge default mode
             storage_default_mode = decoder.decode_16bit_uint()
             if storage_default_mode in STOREDGE_CHARGE_DISCHARGE_MODE:
-                self.data["storage_default_mode"] = STOREDGE_CHARGE_DISCHARGE_MODE[
-                    storage_default_mode
-                ]
+                self.modbus_data[
+                    "storage_default_mode"
+                ] = STOREDGE_CHARGE_DISCHARGE_MODE[storage_default_mode]
             else:
-                self.data["storage_default_mode"] = storage_default_mode
+                self.modbus_data["storage_default_mode"] = storage_default_mode
 
             # 0xE00B - 2- storage remote command timeout (seconds)
-            self.data["storage_remote_command_timeout"] = decoder.decode_32bit_uint()
+            self.modbus_data[
+                "storage_remote_command_timeout"
+            ] = decoder.decode_32bit_uint()
 
             # 0xE00D - 1 - storage remote command mode
             storage_remote_command_mode = decoder.decode_16bit_uint()
             if storage_remote_command_mode in STOREDGE_CHARGE_DISCHARGE_MODE:
-                self.data[
+                self.modbus_data[
                     "storage_remote_command_mode"
                 ] = STOREDGE_CHARGE_DISCHARGE_MODE[storage_remote_command_mode]
             else:
-                self.data["storage_remote_command_mode"] = storage_remote_command_mode
+                self.modbus_data[
+                    "storage_remote_command_mode"
+                ] = storage_remote_command_mode
 
             # 0xE00E - 2- storate remote charge limit
-            self.data["storage_remote_charge_limit"] = round(
+            self.modbus_data["storage_remote_charge_limit"] = round(
                 decoder.decode_32bit_float(), 3
             )
 
             # 0xE010 - 2- storate remote discharge limit
-            self.data["storage_remote_discharge_limit"] = round(
+            self.modbus_data["storage_remote_discharge_limit"] = round(
                 decoder.decode_32bit_float(), 3
             )
 
         return True
 
     def read_modbus_data_battery1(self):
+        """read battery 1"""
         if self.read_battery1:
             return self.read_modbus_data_battery("battery1_", 0xE100)
         return True
 
     def read_modbus_data_battery2(self):
+        """read battery 2"""
         if self.read_battery2:
             return self.read_modbus_data_battery("battery2_", 0xE200)
         return True
 
     def read_modbus_data_battery(self, battery_prefix, start_address):
-        if not battery_prefix + "attrs" in self.data:
+        """read battery data"""
+        if not battery_prefix + "attrs" in self.modbus_data:
             battery_data = self.read_holding_registers(
                 unit=self._address, address=start_address, count=0x4C
             )
@@ -837,7 +860,7 @@ class SolaredgeModbusHub:
                 # 0x4A - 2 - max discharge peak power
                 battery_info["max_power_peak_discharge"] = decoder.decode_32bit_float()
 
-                self.data[battery_prefix + "attrs"] = battery_info
+                self.modbus_data[battery_prefix + "attrs"] = battery_info
 
         storage_data = self.read_holding_registers(
             unit=self._address, address=start_address + 0x6C, count=28
@@ -873,41 +896,47 @@ class SolaredgeModbusHub:
         battery_SoC = validate(decoder.decode_32bit_float(), ">=", 0.0)
         battery_SoC = validate(battery_SoC, "<", 101)
 
-        self.data[battery_prefix + "temp_avg"] = round(tempavg, 1)
-        self.data[battery_prefix + "temp_max"] = round(tempmax, 1)
-        self.data[battery_prefix + "voltage"] = round(batteryvoltage, 3)
-        self.data[battery_prefix + "current"] = round(batterycurrent, 3)
-        self.data[battery_prefix + "power"] = round(batterypower, 3)
-        self.data[battery_prefix + "energy_discharged"] = round(
+        self.modbus_data[battery_prefix + "temp_avg"] = round(tempavg, 1)
+        self.modbus_data[battery_prefix + "temp_max"] = round(tempmax, 1)
+        self.modbus_data[battery_prefix + "voltage"] = round(batteryvoltage, 3)
+        self.modbus_data[battery_prefix + "current"] = round(batterycurrent, 3)
+        self.modbus_data[battery_prefix + "power"] = round(batterypower, 3)
+        self.modbus_data[battery_prefix + "energy_discharged"] = round(
             cumulative_discharged / 1000, 3
         )
-        self.data[battery_prefix + "energy_charged"] = round(
+        self.modbus_data[battery_prefix + "energy_charged"] = round(
             cumulative_charged / 1000, 3
         )
-        self.data[battery_prefix + "size_max"] = round(battery_max, 3)
-        self.data[battery_prefix + "size_available"] = round(battery_availbable, 3)
-        self.data[battery_prefix + "state_of_health"] = round(battery_SoH, 0)
-        self.data[battery_prefix + "state_of_charge"] = round(battery_SoC, 0)
+        self.modbus_data[battery_prefix + "size_max"] = round(battery_max, 3)
+        self.modbus_data[battery_prefix + "size_available"] = round(
+            battery_availbable, 3
+        )
+        self.modbus_data[battery_prefix + "state_of_health"] = round(battery_SoH, 0)
+        self.modbus_data[battery_prefix + "state_of_charge"] = round(battery_SoC, 0)
         battery_status = decoder.decode_32bit_uint()
 
         # voltage and current are bogus in certain statuses
         if not battery_status in [3, 4, 6]:
-            self.data[battery_prefix + "voltage"] = 0
-            self.data[battery_prefix + "current"] = 0
-            self.data[battery_prefix + "power"] = 0
+            self.modbus_data[battery_prefix + "voltage"] = 0
+            self.modbus_data[battery_prefix + "current"] = 0
+            self.modbus_data[battery_prefix + "power"] = 0
 
         if battery_status in BATTERY_STATUSSES:
-            self.data[battery_prefix + "status"] = BATTERY_STATUSSES[battery_status]
+            self.modbus_data[battery_prefix + "status"] = BATTERY_STATUSSES[
+                battery_status
+            ]
         else:
-            self.data[battery_prefix + "status"] = battery_status
+            self.modbus_data[battery_prefix + "status"] = battery_status
 
         return True
 
 
-class SolarEdgeEntity(Entity):
+class SolarEdgeEntity(CoordinatorEntity):
     """Representation of a solaredge entity"""
 
     def __init__(self, hub: SolaredgeModbusHub) -> None:
+        """Init SolarEdgeEntity"""
+        super().__init__(hub)
         self.hub = hub
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, hub.name)},

@@ -62,8 +62,8 @@ class SolarEdgeSelectNew(SelectEntity, SolarEdgeEntity):
     ) -> None:
         super().__init__(hub)
         self.entity_description = description
-        self._attr_name = f"{self.hub.hubname} {description.name}"
-        self._attr_unique_id = f"{self.hub.hubname}_{description.key}"
+        self._attr_name = f"{self.hub.name} {description.name}"
+        self._attr_unique_id = f"{self.hub.name}_{description.key}"
         self._register = description.register
         self._option_dict = description.options_dict
         self._attr_options = list(description.options_dict.values())
@@ -73,21 +73,15 @@ class SolarEdgeSelectNew(SelectEntity, SolarEdgeEntity):
         if self.entity_description.key in self.hub.data:
             return self.hub.data[self.entity_description.key]
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        super()._handle_coordinator_update()
+
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         new_mode = get_key(self._option_dict, option)
         self.hub.write_registers(unit=1, address=self._register, payload=new_mode)
 
         self.hub.data[self.entity_description.key] = option
-        self.async_write_ha_state()
-
-    async def async_added_to_hass(self) -> None:
-        """Register callbacks."""
-        self.hub.async_add_solaredge_sensor(self._modbus_data_updated)
-
-    async def async_will_remove_from_hass(self) -> None:
-        self.hub.async_remove_solaredge_sensor(self._modbus_data_updated)
-
-    @callback
-    def _modbus_data_updated(self) -> None:
         self.async_write_ha_state()

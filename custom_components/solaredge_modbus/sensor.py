@@ -20,6 +20,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 
+
 from homeassistant.core import HomeAssistant, callback
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,21 +68,11 @@ class SolarEdgeSensorNew(SolarEdgeEntity, SensorEntity):
     ) -> None:
         super().__init__(hub)
         self.entity_description = description
-        self._attr_name = f"{self.hub.hubname} {description.name}"
-        self._attr_unique_id = f"{self.hub.hubname}_{description.key}"
-
-    async def async_added_to_hass(self):
-        """Register callbacks."""
-        self.hub.async_add_solaredge_sensor(self._modbus_data_updated)
-
-    async def async_will_remove_from_hass(self) -> None:
-        self.hub.async_remove_solaredge_sensor(self._modbus_data_updated)
-
-    @property
-    def native_value(self):
-        """Return the value reported by the sensor."""
-        return self.hub.data.get(self.entity_description.key)
+        self._attr_name = f"{self.hub.name} {description.name}"
+        self._attr_unique_id = f"{self.hub.name}_{description.key}"
 
     @callback
-    def _modbus_data_updated(self):
-        self.async_write_ha_state()
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_native_value = self.hub.data.get(self.entity_description.key)
+        super()._handle_coordinator_update()
