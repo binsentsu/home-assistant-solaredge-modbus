@@ -4,8 +4,10 @@ import logging
 from homeassistant.const import CONF_NAME
 
 from .const import (
+    ATTR_STATUS_DESCRIPTION,
     BATTERY_1,
     BATTERY_2,
+    DEVICE_STATUSSES,
     INVERTER_SENSORS,
     DOMAIN,
     METER_1,
@@ -68,11 +70,35 @@ class SolarEdgeSensorNew(SolarEdgeEntity, SensorEntity):
     ) -> None:
         super().__init__(hub)
         self.entity_description = description
-        self._attr_name = f"{self.hub.name} {description.name}"
+        self._attr_name = f"{self.hub.name} ({description.name})"
         self._attr_unique_id = f"{self.hub.name}_{description.key}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.hub.data.get(self.entity_description.key)
+        self._async_update_attrs()
         super()._handle_coordinator_update()
+
+    @callback
+    def _async_update_attrs(self) -> None:
+        """Update extra attributes."""
+
+        if (
+            self.entity_description.key in ["status", "statusvendor"]
+            and self._attr_native_value in DEVICE_STATUSSES
+        ):
+            self._attr_extra_state_attributes = {
+                ATTR_STATUS_DESCRIPTION: DEVICE_STATUSSES[self.state]
+            }
+        elif (
+            "battery1" in self.entity_description.key
+            and "battery1_attrs" in self.hub.data
+        ):
+            self._attr_extra_state_attributes = self.hub.data["battery1_attrs"]
+        elif (
+            "battery2" in self.entity_description.key
+            and "battery2_attrs" in self.hub.data
+        ):
+            self._attr_extra_state_attributes = self.hub.data["battery2_attrs"]
+        return None
