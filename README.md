@@ -13,6 +13,15 @@ After reboot of Home-Assistant, this integration can be configured through the i
 2. Connect to the inverter access point like you would for a normal wifi network. The wifi password is published at the right side of the inverter. 
 3. Open up a browser and go to http://172.16.0.1 > Site Communication. From this webpage you can enable modbus TCP without setApp or installer account.
 
+## Wifi based communication:
+We have seen several issues in the past, where the Integration was not able to connect to the inverter on Wifi-based setups.  
+Back then, it seems that SolarEdge has changed something in their firmware and was later fixed in a specific firmware version.  
+According to the feedback of some other users, it seems, that SolarEdge is going to remove the ability to establish a Wifi Connection to the Modbus interface completely in some future firmware versions.  
+
+If you cannot switch to an Ethernet based connection, running a Modbus-Proxy could be a possible workaround for you.  
+A documentation on how to setup the Modbus Proxy can be found in the Discussion section of this repository (https://github.com/binsentsu/home-assistant-solaredge-modbus/discussions/119).  
+Basically, setup the Modbus Proxy on a small computer such as an rPI - connect it to your Inverter via Ethernet, and then use the Wifi Connection to connect to your rPI rather than to the inverter itself.
+
 # Control of battery charge / discharge profile
 
 Appendix B of the Solaredge [power control document][2] gives the necessary steps to allow changing the charge / discharge mode of the battery, but essentially all that you need to do is change the "Storage Control Mode" selector to "Remote" (it is usually set to "Maximise Self Consumption") and then select a mode using the "Storage Default Mode" selector. This can be done either from the UI or via an automation. Being able to control the battery charge / discharge mode like this opens up several possibilities:
