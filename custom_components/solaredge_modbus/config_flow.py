@@ -25,20 +25,35 @@ from .const import (
 )
 from homeassistant.core import HomeAssistant, callback
 
-DATA_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
-        vol.Required(CONF_HOST): str,
-        vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
-        vol.Optional(CONF_MODBUS_ADDRESS, default=DEFAULT_MODBUS_ADDRESS): int,
-        vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): bool,
-        vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): bool,
-        vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): bool,
-        vol.Optional(CONF_READ_BATTERY1, default=DEFAULT_READ_BATTERY1): bool,
-        vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): bool,
-        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
-    }
-)
+
+def config_schema(options: dict = {}) -> dict:
+    """Return a schema for configuration options."""
+    if not options:
+        options = {
+            CONF_NAME: DEFAULT_NAME,
+            CONF_HOST: "",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_MODBUS_ADDRESS: DEFAULT_MODBUS_ADDRESS,
+            CONF_READ_METER1: DEFAULT_READ_METER1,
+            CONF_READ_METER2: DEFAULT_READ_METER2,
+            CONF_READ_METER3: DEFAULT_READ_METER3,
+            CONF_READ_BATTERY1: DEFAULT_READ_BATTERY1,
+            CONF_READ_BATTERY2: DEFAULT_READ_BATTERY2,
+            CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+        }
+    
+    return vol.Schema({
+        vol.Optional(CONF_NAME, default=options.get(CONF_NAME)): str,
+        vol.Required(CONF_HOST, default=options.get(CONF_HOST)): str,
+        vol.Required(CONF_PORT, default=options.get(CONF_PORT)): int,
+        vol.Optional(CONF_MODBUS_ADDRESS, default=options.get(CONF_MODBUS_ADDRESS)): int,
+        vol.Optional(CONF_READ_METER1, default=options.get(CONF_READ_METER1)): bool,
+        vol.Optional(CONF_READ_METER2, default=options.get(CONF_READ_METER2)): bool,
+        vol.Optional(CONF_READ_METER3, default=options.get(CONF_READ_METER3)): bool,
+        vol.Optional(CONF_READ_BATTERY1, default=options.get(CONF_READ_BATTERY1)): bool,
+        vol.Optional(CONF_READ_BATTERY2, default=options.get(CONF_READ_BATTERY2)): bool,
+        vol.Optional(CONF_SCAN_INTERVAL, default=options.get(CONF_SCAN_INTERVAL)): int,
+    })
 
 
 def host_valid(host):
@@ -90,6 +105,29 @@ class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
 
         return self.async_show_form(
-            step_id="user", data_schema=DATA_SCHEMA, errors=errors
+            step_id="user", data_schema=config_schema(), errors=errors
         )
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> config_entries.OptionsFlow:
+        """Create the options flow."""
+        return SolaredgeModbusOptionsFlow(config_entry)
+
+
+class SolaredgeModbusOptionsFlow(config_entries.OptionsFlow):
+    """Solaredge Modbus options flow."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self._config_entry = config_entry
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None):
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=config_schema(self._config_entry.options)
+        )
