@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 from .const import (
     DOMAIN,
     ATTR_MANUFACTURER,
+    ACTIVE_POWER_LIMIT_TYPE,
     EXPORT_CONTROL_NUMBER_TYPES,
     STORAGE_NUMBER_TYPES,
 )
@@ -32,6 +33,20 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     }
 
     entities = []
+
+    # If power control is enabled add power control
+    if hub.power_control_enabled:
+        number = SolarEdgeNumber(
+            hub_name,
+            hub,
+            device_info,
+            ACTIVE_POWER_LIMIT_TYPE[0],
+            ACTIVE_POWER_LIMIT_TYPE[1],
+            ACTIVE_POWER_LIMIT_TYPE[2],
+            ACTIVE_POWER_LIMIT_TYPE[3],
+            ACTIVE_POWER_LIMIT_TYPE[4]
+        )
+        entities.append(number)
 
     # If a meter is available add export control
     if hub.has_meter:
@@ -127,12 +142,20 @@ class SolarEdgeNumber(NumberEntity):
         """Change the selected value."""
         builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
 
-        if self._fmt == "i":
+        if self._fmt == "u32":
             builder.add_32bit_uint(int(value))
+        elif self._fmt =="u16":
+            builder.add_16bit_uint(int(value))
         elif self._fmt == "f":
             builder.add_32bit_float(float(value))
+        else:
+            _LOGGER.error(f"Invalid encoding format {self._fmt} for {self._key}")
+            return
 
-        self._hub.write_registers(unit=1, address=self._register, payload=builder.to_registers())
+        response = self._hub.write_registers(unit=1, address=self._register, payload=builder.to_registers())
+        if response.isError():
+            _LOGGER.error(f"Could not write value {value} to {self._key}")
+            return
 
         self._hub.data[self._key] = value
         self.async_write_ha_state()

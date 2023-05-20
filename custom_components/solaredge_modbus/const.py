@@ -3,6 +3,7 @@ DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_PORT = 1502
 DEFAULT_MODBUS_ADDRESS = 1
+DEFAULT_POWER_CONTROL = False
 DEFAULT_READ_METER1 = False
 DEFAULT_READ_METER2 = False
 DEFAULT_READ_METER3 = False
@@ -12,6 +13,7 @@ CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
 CONF_MODBUS_ADDRESS = "modbus_address"
+CONF_POWER_CONTROL = "power_control"
 CONF_READ_METER1 = "read_meter_1"
 CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
@@ -331,6 +333,8 @@ EXPORT_CONTROL_NUMBER_TYPES = [
     ["Export control site limit", "export_control_site_limit", 0xE002, "f", {"min": 0, "max": 10000, "unit": "W"}],
 ]
 
+ACTIVE_POWER_LIMIT_TYPE = ["Active Power Limit", "nominal_active_power_limit", 0xF001, "u16", {"min": 0, "max": 100, "unit": "%"}]
+
 STORAGE_SELECT_TYPES = [
     ["Storage Control Mode", "storage_contol_mode", 0xE004, STOREDGE_CONTROL_MODE],
     ["Storage AC Charge Policy", "storage_ac_charge_policy", 0xE005, STOREDGE_AC_CHARGE_POLICY],
@@ -342,7 +346,7 @@ STORAGE_SELECT_TYPES = [
 STORAGE_NUMBER_TYPES = [
     ["Storage AC Charge Limit", "storage_ac_charge_limit", 0xE006, "f", {"min": 0, "max": 100000000000}],
     ["Storage Backup reserved", "storage_backup_reserved", 0xE008, "f", {"min": 0, "max": 100, "unit": "%"}],
-    ["Storage Remote Command Timeout", "storage_remote_command_timeout", 0xE00B, "i", {"min": 0, "max": 86400, "unit": "s"}],
+    ["Storage Remote Command Timeout", "storage_remote_command_timeout", 0xE00B, "u32", {"min": 0, "max": 86400, "unit": "s"}],
     ["Storage Remote Charge Limit", "storage_remote_charge_limit", 0xE00E, "f", {"min": 0, "max": 20000, "unit": "W"}],
     ["Storage Remote Discharge Limit", "storage_remote_discharge_limit", 0xE010, "f", {"min": 0, "max": 20000, "unit": "W"}],
 ]

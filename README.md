@@ -33,5 +33,22 @@ Appendix B of the Solaredge [power control document][2] gives the necessary step
 
 Note that if you allow the battery to be charged from the grid, via the "Storage AC Charge Policy" selector, the self-consumption metric will disappear from the Solaredge monitoring - according to Solaredge technical support, this is because "they can't tell where the energy came from".
 
+# Control of inverter power output
+The active power limit of the inverter can be set from Home Assistant. This enables limiting or completely shutting down power output. For example in case of a dynamic energy contract in periods with a negative energy price. 
+
+The active power limit is set as the percentage of the inverter’s maximum power via `number.solaredge_active_power_limit`. For example: when you have a SE5000 inverter that has a maximum output of 5000W, setting the value of `number.solaredge_active_power_limit` to 20 will limit the inverter to 1000W which is 20% of 5000W. See [Power Control Protocol for Solaredge Inverters Technical Note][2] for detailed information.
+
+## Enabling Power Control in Home Assistant
+Power control is disabled by default. It can be enabled in the configuration of this integration by setting `power_control` to true. When power control is enabled `number.solaredge_active_power_limit` is available in Home Assistant for reading and writing. The actual value of the active power limit is read together with the other values of the inverter. 
+
+## Enabling Power Control on SolarEdge Inverter
+With default settings the inverter will not allow power control. It can be enabled in the same way that Modbus TCP is enabled on the SolarEdge Inverter, by connecting to the inverter with a web browser.
+
+These to settings must be applied in the Power Control menu:
+
+1. Set Advanced Power Control to Enable
+2. Set Reactive Power mode to RRCR
+
+
 [1]: https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
 [2]: https://www.photovoltaikforum.com/core/attachment/88445-power-control-open-protocol-for-solaredge-inverters-pdf/
