@@ -562,9 +562,17 @@ STOREDGE_CHARGE_DISCHARGE_MODE = {
     7: "Maximize self consumption",
 }
 
-#TODO
-ACTIVE_POWER_LIMIT_TYPE = ["Active Power Limit", "nominal_active_power_limit", 0xF001, "u16", {"min": 0, "max": 100, "unit": "%"}]
-
+ACTIVE_POWER_LIMIT_TYPES: list[SolarEdgeNumberDescription] = []
+ACTIVE_POWER_LIMIT_TYPES.append(
+    SolarEdgeNumberDescription(
+        name="Active Power Limit",
+        key="nominal_active_power_limit",
+        register=0xF001,
+        fmt="u16",
+        attrs={"min": 0, "max": 100},
+        native_unit_of_measurement=PERCENTAGE,
+    )
+)
 
 
 EXPORT_CONTROL_SELECT_TYPES: list[SolarEdgeSelectDescription] = []

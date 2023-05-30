@@ -6,6 +6,7 @@ from . import (
     SolaredgeModbusHub,
 )
 from .const import (
+    ACTIVE_POWER_LIMIT_TYPES,
     DOMAIN,
     ACTIVE_POWER_LIMIT_TYPE,
     EXPORT_CONTROL_NUMBER_TYPES,
@@ -32,20 +33,12 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> N
     hub = hass.data[DOMAIN][hub_name]["hub"]
 
     entities = []
-    
-    #TODO description If power control is enabled add power control
+
+    # If power control is enabled add power control
     if hub.power_control_enabled:
-        number = SolarEdgeNumber(
-            hub_name,
-            hub,
-            device_info,
-            ACTIVE_POWER_LIMIT_TYPE[0],
-            ACTIVE_POWER_LIMIT_TYPE[1],
-            ACTIVE_POWER_LIMIT_TYPE[2],
-            ACTIVE_POWER_LIMIT_TYPE[3],
-            ACTIVE_POWER_LIMIT_TYPE[4]
-        )
-        entities.append(number)
+        for number_info in ACTIVE_POWER_LIMIT_TYPES:
+            entities.append(SolarEdgeNumberNew(hub, number_info))
+
     # If a meter is available add export control
     if hub.has_meter:
         for number_info in EXPORT_CONTROL_NUMBER_TYPES:
@@ -92,7 +85,7 @@ class SolarEdgeNumberNew(SolarEdgeEntity, NumberEntity):
 
         if self._fmt == "u32":
             builder.add_32bit_uint(int(value))
-        elif self._fmt =="u16":
+        elif self._fmt == "u16":
             builder.add_16bit_uint(int(value))
         elif self._fmt == "f":
             builder.add_32bit_float(float(value))

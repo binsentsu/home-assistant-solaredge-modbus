@@ -89,7 +89,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     port = entry.data[CONF_PORT]
     address = entry.data.get(CONF_MODBUS_ADDRESS, 1)
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
-    power_control = entry.data.get(CONF_POWER_CONTROL, DEFAULT_POWER_CONTROL),
+    power_control = entry.data.get(CONF_POWER_CONTROL, False)
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
@@ -696,15 +696,15 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         self.modbus_data["statusvendor"] = statusvendor
 
         return True
-        
+
     def read_modbus_power_limit(self):
-        """ 
-        Read the active power limit value (%) 
         """
-        
+        Read the active power limit value (%)
+        """
+
         if not self.power_control_enabled:
             return True
-        
+
         inverter_data = self.read_holding_registers(
             unit=self._address, address=0xF001, count=1
         )
@@ -717,7 +717,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             inverter_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
         )
         # 0xF001 - 1 - Active Power Limit
-        self.data["nominal_active_power_limit"] = decoder.decode_16bit_uint()
+        self.modbus_data["nominal_active_power_limit"] = decoder.decode_16bit_uint()
 
         return True
 
