@@ -27,11 +27,13 @@ from .const import (
     DEFAULT_MODBUS_ADDRESS,
     ATTR_MANUFACTURER,
     CONF_MODBUS_ADDRESS,
+    CONF_POWER_CONTROL,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
     CONF_READ_BATTERY1,
     CONF_READ_BATTERY2,
+    DEFAULT_POWER_CONTROL,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
@@ -55,6 +57,7 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(
             CONF_MODBUS_ADDRESS, default=DEFAULT_MODBUS_ADDRESS
         ): cv.positive_int,
+        vol.Optional(CONF_POWER_CONTROL, default=DEFAULT_POWER_CONTROL): cv.boolean,
         vol.Optional(CONF_READ_METER1, default=DEFAULT_READ_METER1): cv.boolean,
         vol.Optional(CONF_READ_METER2, default=DEFAULT_READ_METER2): cv.boolean,
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,
@@ -86,6 +89,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     port = entry.data[CONF_PORT]
     address = entry.data.get(CONF_MODBUS_ADDRESS, 1)
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
+    power_control = entry.data.get(CONF_POWER_CONTROL, DEFAULT_POWER_CONTROL),
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
@@ -101,6 +105,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         port,
         address,
         scan_interval,
+        power_control,
         read_meter1,
         read_meter2,
         read_meter3,
@@ -153,6 +158,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         port,
         address,
         scan_interval,
+        power_control=False,
         read_meter1=False,
         read_meter2=False,
         read_meter3=False,
@@ -169,6 +175,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         self._client = ModbusTcpClient(host=host, port=port)
         self._lock = threading.Lock()
         self._address = address
+        self.power_control = power_control
         self.read_meter1 = read_meter1
         self.read_meter2 = read_meter2
         self.read_meter3 = read_meter3
@@ -194,6 +201,11 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         """Connect client."""
         with self._lock:
             self._client.connect()
+
+    @property
+    def power_control_enabled(self):
+        """Return true if power control has been enabled"""
+        return self.power_control
 
     @property
     def has_meter(self):
@@ -227,6 +239,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         """read all modbus data"""
         return (
             self.read_modbus_data_inverter()
+            and self.read_modbus_power_limit()
             and self.read_modbus_data_meter1()
             and self.read_modbus_data_meter2()
             and self.read_modbus_data_meter3()
@@ -681,6 +694,30 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         self.modbus_data["status"] = status
         statusvendor = decoder.decode_16bit_int()
         self.modbus_data["statusvendor"] = statusvendor
+
+        return True
+        
+    def read_modbus_power_limit(self):
+        """ 
+        Read the active power limit value (%) 
+        """
+        
+        if not self.power_control_enabled:
+            return True
+        
+        inverter_data = self.read_holding_registers(
+            unit=self._address, address=0xF001, count=1
+        )
+        if inverter_data.isError():
+            _LOGGER.debug("Could not read Active Power Limit")
+            # Don't stop reading other data, could just be advanced power management not enabled
+            return True
+
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            inverter_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
+        )
+        # 0xF001 - 1 - Active Power Limit
+        self.data["nominal_active_power_limit"] = decoder.decode_16bit_uint()
 
         return True
 

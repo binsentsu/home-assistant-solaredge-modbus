@@ -26,6 +26,7 @@ DEFAULT_NAME = "solaredge"
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_PORT = 1502
 DEFAULT_MODBUS_ADDRESS = 1
+DEFAULT_POWER_CONTROL = False
 DEFAULT_READ_METER1 = False
 DEFAULT_READ_METER2 = False
 DEFAULT_READ_METER3 = False
@@ -35,6 +36,7 @@ CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
 CONF_MODBUS_ADDRESS = "modbus_address"
+CONF_POWER_CONTROL = "power_control"
 CONF_READ_METER1 = "read_meter_1"
 CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
@@ -560,6 +562,10 @@ STOREDGE_CHARGE_DISCHARGE_MODE = {
     7: "Maximize self consumption",
 }
 
+#TODO
+ACTIVE_POWER_LIMIT_TYPE = ["Active Power Limit", "nominal_active_power_limit", 0xF001, "u16", {"min": 0, "max": 100, "unit": "%"}]
+
+
 
 EXPORT_CONTROL_SELECT_TYPES: list[SolarEdgeSelectDescription] = []
 
@@ -648,7 +654,7 @@ STORAGE_NUMBER_TYPES.extend(
             name="Storage Remote Command Timeout",
             key="storage_remote_command_timeout",
             register=0xE00B,
-            fmt="i",
+            fmt="u32",
             attrs={"min": 0, "max": 86400},
             native_unit_of_measurement=ATTR_SECONDS,
         ),
