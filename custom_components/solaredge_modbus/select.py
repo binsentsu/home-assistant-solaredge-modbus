@@ -61,8 +61,8 @@ class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
         description: SolarEdgeSelectDescription,
     ) -> None:
         super().__init__(hub)
+        self._attr_has_entity_name = True
         self.entity_description = description
-        self._attr_name = f"{self.hub.name} {description.name}"
         self._attr_unique_id = f"{self.hub.name}_{description.key}"
         self._register = description.register
         self._option_dict = description.options_dict
@@ -81,7 +81,8 @@ class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         new_mode = get_key(self._option_dict, option)
-        self.hub.write_registers(unit=1, address=self._register, payload=new_mode)
+        self.hub.write_registers(
+            unit=1, address=self._register, payload=new_mode)
 
         self.hub.data[self.entity_description.key] = option
         self.async_write_ha_state()

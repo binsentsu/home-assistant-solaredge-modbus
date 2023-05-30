@@ -70,7 +70,7 @@ class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
     ) -> None:
         super().__init__(hub)
         self.entity_description = description
-        self._attr_name = f"{self.hub.name} ({description.name})"
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{self.hub.name}_{description.key}"
 
     @callback

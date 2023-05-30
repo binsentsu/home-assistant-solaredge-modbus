@@ -60,7 +60,7 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
     ) -> None:
         super().__init__(hub)
         self.entity_description = description
-        self._attr_name = f"{self.hub.name} {description.name}"
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{self.hub.name}_{description.key}"
         self._register = description.register
         self._fmt = description.fmt
@@ -80,7 +80,8 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Change the selected value."""
-        builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+        builder = BinaryPayloadBuilder(
+            byteorder=Endian.Big, wordorder=Endian.Little)
 
         if self._fmt == "u32":
             builder.add_32bit_uint(int(value))
