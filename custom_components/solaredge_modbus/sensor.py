@@ -36,33 +36,33 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     entities = []
 
     for sensor_info in INVERTER_SENSORS:
-        entities.append(SolarEdgeSensorNew(hub, sensor_info))
+        entities.append(SolarEdgeSensor(hub, sensor_info))
 
     if hub.read_meter1:
         for meter_sensor_info in METERS.get(METER_1):
-            entities.append(SolarEdgeSensorNew(hub, meter_sensor_info))
+            entities.append(SolarEdgeSensor(hub, meter_sensor_info))
 
     if hub.read_meter2:
         for meter_sensor_info in METERS.get(METER_2):
-            entities.append(SolarEdgeSensorNew(hub, meter_sensor_info))
+            entities.append(SolarEdgeSensor(hub, meter_sensor_info))
 
     if hub.read_meter3:
         for meter_sensor_info in METERS.get(METER_3):
-            entities.append(SolarEdgeSensorNew(hub, meter_sensor_info))
+            entities.append(SolarEdgeSensor(hub, meter_sensor_info))
 
     if hub.read_battery1:
         for battery_sensor_info in BATTERIES.get(BATTERY_1):
-            entities.append(SolarEdgeSensorNew(hub, battery_sensor_info))
+            entities.append(SolarEdgeSensor(hub, battery_sensor_info))
 
     if hub.read_battery2:
         for battery_sensor_info in BATTERIES.get(BATTERY_2):
-            entities.append(SolarEdgeSensorNew(hub, battery_sensor_info))
+            entities.append(SolarEdgeSensor(hub, battery_sensor_info))
 
     async_add_entities(entities)
     return True
 
 
-class SolarEdgeSensorNew(SolarEdgeEntity, SensorEntity):
+class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
     """Representation of a solaredge sensor"""
 
     def __init__(

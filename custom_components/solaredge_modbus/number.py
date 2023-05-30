@@ -8,7 +8,6 @@ from . import (
 from .const import (
     ACTIVE_POWER_LIMIT_TYPES,
     DOMAIN,
-    ACTIVE_POWER_LIMIT_TYPE,
     EXPORT_CONTROL_NUMBER_TYPES,
     STORAGE_NUMBER_TYPES,
     SolarEdgeNumberDescription,
@@ -37,23 +36,23 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> N
     # If power control is enabled add power control
     if hub.power_control_enabled:
         for number_info in ACTIVE_POWER_LIMIT_TYPES:
-            entities.append(SolarEdgeNumberNew(hub, number_info))
+            entities.append(SolarEdgeNumber(hub, number_info))
 
     # If a meter is available add export control
     if hub.has_meter:
         for number_info in EXPORT_CONTROL_NUMBER_TYPES:
-            entities.append(SolarEdgeNumberNew(hub, number_info))
+            entities.append(SolarEdgeNumber(hub, number_info))
 
     # If a battery is available add storage control
     if hub.has_battery:
         for number_info in STORAGE_NUMBER_TYPES:
-            entities.append(SolarEdgeNumberNew(hub, number_info))
+            entities.append(SolarEdgeNumber(hub, number_info))
 
     async_add_entities(entities)
     return True
 
 
-class SolarEdgeNumberNew(SolarEdgeEntity, NumberEntity):
+class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
     """Solaredge Number Entity"""
 
     def __init__(
@@ -90,14 +89,20 @@ class SolarEdgeNumberNew(SolarEdgeEntity, NumberEntity):
         elif self._fmt == "f":
             builder.add_32bit_float(float(value))
         else:
-            _LOGGER.error(f"Invalid encoding format {self._fmt} for {self._key}")
+            _LOGGER.error(
+                "Invalid encoding format %s for %s",
+                self._fmt,
+                self.entity_description.key,
+            )
             return
 
         response = self.hub.write_registers(
             unit=1, address=self._register, payload=builder.to_registers()
         )
         if response.isError():
-            _LOGGER.error(f"Could not write value {value} to {self._key}")
+            _LOGGER.error(
+                "Could not write value %s to %s", value, self.entity_description.key
+            )
             return
 
         self.hub.data[self.entity_description.key] = value

@@ -131,7 +131,7 @@ async def async_unload_entry(hass, entry):
 
 
 def validate(value, comparison, against):
-    """validate a value"""
+    """TODO validate a value"""
     if True:
         return value
     ops = {

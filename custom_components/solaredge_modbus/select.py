@@ -33,12 +33,12 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> N
     # If a meter is available add export control
     if hub.has_meter:
         for select_info in EXPORT_CONTROL_SELECT_TYPES:
-            entities.append(SolarEdgeSelectNew(hub, select_info))
+            entities.append(SolarEdgeSelect(hub, select_info))
 
     # If a battery is available add storage control
     if hub.has_battery:
         for select_info in STORAGE_SELECT_TYPES:
-            entities.append(SolarEdgeSelectNew(hub, select_info))
+            entities.append(SolarEdgeSelect(hub, select_info))
 
     async_add_entities(entities)
     return True
@@ -52,7 +52,7 @@ def get_key(my_dict, search):
     return None
 
 
-class SolarEdgeSelectNew(SelectEntity, SolarEdgeEntity):
+class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
     """SolarEdge Select Entity"""
 
     def __init__(
