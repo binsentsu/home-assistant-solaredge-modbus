@@ -41,6 +41,8 @@ from .const import (
     STOREDGE_CONTROL_MODE,
     STOREDGE_AC_CHARGE_POLICY,
     STOREDGE_CHARGE_DISCHARGE_MODE,
+    CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
+    DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,6 +63,10 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): cv.boolean,
         vol.Optional(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+        ): cv.positive_int,
+        vol.Optional(
+            CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
+            default=DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
         ): cv.positive_int,
     }
 )
@@ -91,6 +97,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     read_meter3 = entry.data.get(CONF_READ_METER3, DEFAULT_READ_METER3)
     read_battery1 = entry.data.get(CONF_READ_BATTERY1, DEFAULT_READ_BATTERY1)
     read_battery2 = entry.data.get(CONF_READ_BATTERY2, DEFAULT_READ_BATTERY2)
+    max_export_control_site_limit = entry.data.get(
+        CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT
+    )
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
@@ -107,6 +116,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         read_meter3,
         read_battery1,
         read_battery2,
+        max_export_control_site_limit,
     )
     """Register the hub."""
     hass.data[DOMAIN][name] = {"hub": hub}
@@ -181,6 +191,7 @@ class SolaredgeModbusHub:
         self.read_battery1 = read_battery1
         self.read_battery2 = read_battery2
         self._scan_interval = timedelta(seconds=scan_interval)
+        self.max_export_control_site_limit = max_export_control_site_limit
         self._unsub_interval_method = None
         self._sensors = []
         self.data = {}
