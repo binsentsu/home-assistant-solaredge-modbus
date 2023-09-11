@@ -59,10 +59,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
                 number_info[1],
                 number_info[2],
                 number_info[3],
-                dict(min=number_info[4]['min'],
-                     max=hub.max_export_control_site_limit,
-                     unit=number_info[4]['unit']
-                )
+                number_info[4],
             )
             entities.append(number)
 

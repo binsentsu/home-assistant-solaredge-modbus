@@ -23,9 +23,7 @@ from .const import (
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
     DEFAULT_READ_BATTERY1,
-    DEFAULT_READ_BATTERY2,
-    CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
-    DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT
+    DEFAULT_READ_BATTERY2
 )
 from homeassistant.core import HomeAssistant, callback
 
@@ -42,7 +40,6 @@ DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_READ_BATTERY1, default=DEFAULT_READ_BATTERY1): bool,
         vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): bool,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
-        vol.Optional(CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, default=DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT): int,
     }
 )
 
