@@ -169,7 +169,7 @@ class SolaredgeModbusHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._client = ModbusTcpClient(host=host, port=port)
+        self._client = ModbusTcpClient(host=host, port=port, timeout=(scan_interval - 1))
         self._lock = threading.Lock()
         self._name = name
         self._address = address
