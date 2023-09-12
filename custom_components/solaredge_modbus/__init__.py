@@ -176,6 +176,7 @@ class SolaredgeModbusHub:
         read_meter3=DEFAULT_READ_METER3,
         read_battery1=DEFAULT_READ_BATTERY1,
         read_battery2=DEFAULT_READ_BATTERY2,
+        max_export_control_site_limit=DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
