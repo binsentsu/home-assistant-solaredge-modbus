@@ -19,6 +19,8 @@ CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
 CONF_READ_BATTERY1 = "read_battery_1"
 CONF_READ_BATTERY2 = "read_battery_2"
+CONF_MAX_EXPORT_CONTROL_SITE_LIMIT = "max_export_control_site_limit"
+DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT = 10000
 
 SENSOR_TYPES = {
     "AC_Current": ["AC Current", "accurrent", "A", "mdi:current-ac"],
@@ -330,7 +332,7 @@ EXPORT_CONTROL_SELECT_TYPES = [
 ]
 
 EXPORT_CONTROL_NUMBER_TYPES = [
-    ["Export control site limit", "export_control_site_limit", 0xE002, "f", {"min": 0, "max": 10000, "unit": "W"}],
+    ["Export control site limit", "export_control_site_limit", 0xE002, "f", {"min": 0, "max": DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT, "unit": "W"}],
 ]
 
 ACTIVE_POWER_LIMIT_TYPE = ["Active Power Limit", "nominal_active_power_limit", 0xF001, "u16", {"min": 0, "max": 100, "unit": "%"}]
