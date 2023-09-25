@@ -180,7 +180,7 @@ class SolaredgeModbusHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._client = ModbusTcpClient(host=host, port=port, timeout=(scan_interval - 1))
+        self._client = ModbusTcpClient(host=host, port=port, timeout=max(3, (scan_interval - 1)))
         self._lock = threading.Lock()
         self._name = name
         self._address = address
@@ -227,7 +227,7 @@ class SolaredgeModbusHub:
         if not self._check_and_reconnect():
             #if not connected, skip
             return
-        
+
         try:
             update_result = self.read_modbus_data()
         except Exception as e:
@@ -260,12 +260,12 @@ class SolaredgeModbusHub:
         result = False
         with self._lock:
             result = self._client.connect()
-            
+
         if result:
-            _LOGGER.info("successfully connected to %s:%s", 
+            _LOGGER.info("successfully connected to %s:%s",
                          self._client.comm_params.host, self._client.comm_params.port)
         else:
-            _LOGGER.warning("not able to connect to %s:%s", 
+            _LOGGER.warning("not able to connect to %s:%s",
                             self._client.comm_params.host, self._client.comm_params.port)
         return result
 
@@ -274,7 +274,7 @@ class SolaredgeModbusHub:
     def power_control_enabled(self):
         """Return true if power control has been enabled"""
         return self.power_control
-    
+
     @property
     def has_meter(self):
         """Return true if a meter is available"""
@@ -712,13 +712,13 @@ class SolaredgeModbusHub:
         return True
 
     def read_modbus_power_limit(self):
-        """ 
-        Read the active power limit value (%) 
         """
-        
+        Read the active power limit value (%)
+        """
+
         if not self.power_control_enabled:
             return True
-        
+
         inverter_data = self.read_holding_registers(
             unit=self._address, address=0xF001, count=1
         )
