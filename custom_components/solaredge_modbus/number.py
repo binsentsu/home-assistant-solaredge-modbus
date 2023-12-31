@@ -1,10 +1,14 @@
-"""solaredge number platform"""
+"""Solaredge number platform."""
 import logging
 
-from . import (
-    SolarEdgeEntity,
-    SolaredgeModbusHub,
-)
+from pymodbus.constants import Endian
+from pymodbus.payload import BinaryPayloadBuilder
+
+from homeassistant.components.number import NumberEntity
+from homeassistant.const import CONF_NAME
+from homeassistant.core import HomeAssistant, callback
+
+from . import SolarEdgeEntity, SolaredgeModbusHub
 from .const import (
     ACTIVE_POWER_LIMIT_TYPES,
     DOMAIN,
@@ -13,21 +17,11 @@ from .const import (
     SolarEdgeNumberDescription,
 )
 
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadBuilder
-
-from homeassistant.const import CONF_NAME
-from homeassistant.components.number import (
-    NumberEntity,
-)
-
-from homeassistant.core import HomeAssistant, callback
-
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> None:
-    """setup number entities"""
+    """Execute the setup of number entities."""
     hub_name = entry.data[CONF_NAME]
     hub = hass.data[DOMAIN][hub_name]["hub"]
 
@@ -51,14 +45,14 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> N
     async_add_entities(entities)
     return True
 
-//TODO: export control site limit
 
 class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
-    """Solaredge Number Entity"""
+    """Solaredge Number Entity."""
 
     def __init__(
         self, hub: SolaredgeModbusHub, description: SolarEdgeNumberDescription
     ) -> None:
+        """Init."""
         super().__init__(hub)
         self.entity_description = description
         self._attr_has_entity_name = True
@@ -75,7 +69,7 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
 
     @property
     def native_value(self) -> float:
-        """get native value"""
+        """Get native value."""
         if self.entity_description.key in self.hub.data:
             return self.hub.data[self.entity_description.key]
 

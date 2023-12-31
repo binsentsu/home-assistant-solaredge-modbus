@@ -1,35 +1,30 @@
-"""Solaredge sensors"""
+"""Solaredge sensors."""
 import logging
 
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.const import CONF_NAME
+from homeassistant.core import HomeAssistant, callback
 
+from . import SolarEdgeEntity, SolaredgeModbusHub
 from .const import (
     ATTR_STATUS_DESCRIPTION,
+    BATTERIES,
     BATTERY_1,
     BATTERY_2,
     DEVICE_STATUSSES,
-    INVERTER_SENSORS,
     DOMAIN,
+    INVERTER_SENSORS,
     METER_1,
     METER_2,
     METER_3,
     METERS,
-    BATTERIES,
 )
-from . import SolarEdgeEntity, SolaredgeModbusHub
-from homeassistant.components.sensor import (
-    SensorEntity,
-    SensorEntityDescription,
-)
-
-
-from homeassistant.core import HomeAssistant, callback
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
-    """setup sensors"""
+    """Execute the setup of the sensors."""
     hub_name = entry.data[CONF_NAME]
     hub = hass.data[DOMAIN][hub_name]["hub"]
 
@@ -63,11 +58,12 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
 
 class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
-    """Representation of a solaredge sensor"""
+    """Representation of a solaredge sensor."""
 
     def __init__(
         self, hub: SolaredgeModbusHub, description: SensorEntityDescription
     ) -> None:
+        """Init the sensor."""
         super().__init__(hub)
         self.entity_description = description
         self._attr_has_entity_name = True
@@ -101,4 +97,3 @@ class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
             and "battery2_attrs" in self.hub.data
         ):
             self._attr_extra_state_attributes = self.hub.data["battery2_attrs"]
-        return None

@@ -1,11 +1,11 @@
-"""solaredge select entities"""
+"""Solaredge select entities."""
 import logging
 
-from . import (
-    SolarEdgeEntity,
-    SolaredgeModbusHub,
-)
+from homeassistant.components.select import SelectEntity
+from homeassistant.const import CONF_NAME
+from homeassistant.core import HomeAssistant, callback
 
+from . import SolarEdgeEntity, SolaredgeModbusHub
 from .const import (
     DOMAIN,
     EXPORT_CONTROL_SELECT_TYPES,
@@ -13,18 +13,11 @@ from .const import (
     SolarEdgeSelectDescription,
 )
 
-from homeassistant.const import CONF_NAME
-from homeassistant.components.select import (
-    SelectEntity,
-)
-
-from homeassistant.core import HomeAssistant, callback
-
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> None:
-    """setup select"""
+    """Execute the setup."""
     hub_name = entry.data[CONF_NAME]
     hub = hass.data[DOMAIN][hub_name]["hub"]
 
@@ -45,7 +38,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> N
 
 
 def get_key(my_dict, search):
-    """getKey"""
+    """GetKey."""
     for key, value in my_dict.items():
         if value == search:
             return key
@@ -53,13 +46,14 @@ def get_key(my_dict, search):
 
 
 class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
-    """SolarEdge Select Entity"""
+    """SolarEdge Select Entity."""
 
     def __init__(
         self,
         hub: SolaredgeModbusHub,
         description: SolarEdgeSelectDescription,
     ) -> None:
+        """Init the select entity."""
         super().__init__(hub)
         self._attr_has_entity_name = True
         self.entity_description = description
@@ -70,6 +64,7 @@ class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
 
     @property
     def current_option(self) -> str:
+        """Get current option."""
         if self.entity_description.key in self.hub.data:
             return self.hub.data[self.entity_description.key]
 

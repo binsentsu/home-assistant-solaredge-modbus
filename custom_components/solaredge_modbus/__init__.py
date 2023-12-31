@@ -1,52 +1,52 @@
 """The SolarEdge Modbus Integration."""
-import asyncio
+from datetime import timedelta
 import logging
 import operator
 import threading
-from datetime import timedelta
-from typing import Optional
 
-import voluptuous as vol
 from pymodbus.client import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
+import voluptuous as vol
 
-import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME, CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
-from homeassistant.core import callback
-from homeassistant.helpers.entity import DeviceInfo, Entity
-from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
+
 from .const import (
-    DOMAIN,
-    DEFAULT_NAME,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_MODBUS_ADDRESS,
     ATTR_MANUFACTURER,
+    BATTERY_STATUSSES,
+    CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
     CONF_MODBUS_ADDRESS,
     CONF_POWER_CONTROL,
+    CONF_READ_BATTERY1,
+    CONF_READ_BATTERY2,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
-    CONF_READ_BATTERY1,
-    CONF_READ_BATTERY2,
+    DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
+    DEFAULT_MODBUS_ADDRESS,
+    DEFAULT_NAME,
     DEFAULT_POWER_CONTROL,
+    DEFAULT_READ_BATTERY1,
+    DEFAULT_READ_BATTERY2,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
-    DEFAULT_READ_BATTERY1,
-    DEFAULT_READ_BATTERY2,
-    BATTERY_STATUSSES,
-    EXPORT_CONTROL_MODE,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
     EXPORT_CONTROL_LIMIT_MODE,
-    STOREDGE_CONTROL_MODE,
+    EXPORT_CONTROL_MODE,
     STOREDGE_AC_CHARGE_POLICY,
     STOREDGE_CHARGE_DISCHARGE_MODE,
-    CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
-    DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
+    STOREDGE_CONTROL_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ CONFIG_SCHEMA = vol.Schema(
 PLATFORMS = ["sensor", "number", "select"]
 
 
-async def async_setup(hass, config):
+async def async_setup(hass: HomeAssistant, config):
     """Set up the Solaredge modbus component."""
     hass.data[DOMAIN] = {}
     return True
@@ -130,7 +130,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     return True
 
 
-async def async_unload_entry(hass, entry):
+async def async_unload_entry(hass: HomeAssistant, entry):
     """Unload Solaredge mobus entry."""
     hub = hass.data[DOMAIN][entry.data["name"]]["hub"]
     await hub.close()
@@ -141,7 +141,7 @@ async def async_unload_entry(hass, entry):
 
 
 def validate(value, comparison, against):
-    """TODO validate a value"""
+    """TODO validate a value."""
     if True:
         return value
     ops = {
@@ -162,7 +162,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
     def __init__(
         self,
-        hass,
+        hass: HomeAssistant,
         name,
         host,
         port,
@@ -197,7 +197,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict:
         """Time to update."""
-        
+
         if not self._check_and_reconnect():
             #if not connected, skip
             return
@@ -205,17 +205,17 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         try:
             self.read_modbus_data()
             return self.modbus_data
-        except Exception:
-            raise UpdateFailed()
+        except (Exception) as error:
+                raise UpdateFailed(error) from error
 
     async def close(self):
         """Disconnect client."""
         with self._lock:
             self._client.close()
-            
+
     def _check_and_reconnect(self):
         if not self._client.connected:
-            _LOGGER.info("modbus client is not connected, trying to reconnect")
+            _LOGGER.info("Modbus client is not connected, trying to reconnect")
             return self.connect()
 
         return self._client.connected
@@ -225,28 +225,28 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         result = False
         with self._lock:
             result = self._client.connect()
-            
+
         if result:
-            _LOGGER.info("successfully connected to %s:%s", 
+            _LOGGER.info("Successfully connected to %s:%s",
                          self._client.comm_params.host, self._client.comm_params.port)
         else:
-            _LOGGER.warning("not able to connect to %s:%s", 
+            _LOGGER.warning("Not able to connect to %s:%s",
                             self._client.comm_params.host, self._client.comm_params.port)
         return result
 
     @property
     def power_control_enabled(self):
-        """Return true if power control has been enabled"""
+        """Return true if power control has been enabled."""
         return self.power_control
 
     @property
     def has_meter(self):
-        """Return true if a meter is available"""
+        """Return true if a meter is available."""
         return self.read_meter1 or self.read_meter2 or self.read_meter3
 
     @property
     def has_battery(self):
-        """Return true if a battery is available"""
+        """Return true if a battery is available."""
         return self.read_battery1 or self.read_battery2
 
     def read_holding_registers(self, unit, address, count):
@@ -264,11 +264,11 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             )
 
     def calculate_value(self, value, sf):
-        """calculate a value using scaling factor"""
+        """Calculate a value using scaling factor."""
         return value * 10**sf
 
     def read_modbus_data(self):
-        """read all modbus data"""
+        """Read all modbus data."""
         return (
             self.read_modbus_data_inverter()
             and self.read_modbus_power_limit()
@@ -281,25 +281,25 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         )
 
     def read_modbus_data_meter1(self):
-        """read meter 1 modbus data"""
+        """Read meter 1 modbus data."""
         if self.read_meter1:
             return self.read_modbus_data_meter("m1_", 40190)
         return True
 
     def read_modbus_data_meter2(self):
-        """read meter 2 modbus data"""
+        """Read meter 2 modbus data."""
         if self.read_meter2:
             return self.read_modbus_data_meter("m2_", 40364)
         return True
 
     def read_modbus_data_meter3(self):
-        """read meter 3 modbus data"""
+        """Read meter 3 modbus data."""
         if self.read_meter3:
             return self.read_modbus_data_meter("m3_", 40539)
         return True
 
     def read_modbus_data_meter(self, meter_prefix, start_address):
-        """start reading meter  data"""
+        """Start reading meter  data."""
         meter_data = self.read_holding_registers(
             unit=self._address, address=start_address, count=103
         )
@@ -607,7 +607,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         return True
 
     def read_modbus_data_inverter(self):
-        """read inverter data"""
+        """Read inverter data."""
         inverter_data = self.read_holding_registers(
             unit=self._address, address=40071, count=38
         )
@@ -730,9 +730,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         return True
 
     def read_modbus_power_limit(self):
-        """
-        Read the active power limit value (%)
-        """
+        """Read the active power limit value (%)."""
 
         if not self.power_control_enabled:
             return True
@@ -754,7 +752,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         return True
 
     def read_modbus_data_storage(self):
-        """read storage data"""
+        """Read storage data."""
         if self.has_battery:
             count = 0x12  # Read storedge block as well
         elif self.has_meter:
@@ -865,20 +863,20 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         return True
 
     def read_modbus_data_battery1(self):
-        """read battery 1"""
+        """Read battery 1."""
         if self.read_battery1:
             return self.read_modbus_data_battery("battery1_", 0xE100)
         return True
 
     def read_modbus_data_battery2(self):
-        """read battery 2"""
+        """Read battery 2."""
         if self.read_battery2:
             return self.read_modbus_data_battery("battery2_", 0xE200)
         return True
 
     def read_modbus_data_battery(self, battery_prefix, start_address):
-        """read battery data"""
-        if not battery_prefix + "attrs" in self.modbus_data:
+        """Read battery data."""
+        if battery_prefix + "attrs" not in self.modbus_data:
             battery_data = self.read_holding_registers(
                 unit=self._address, address=start_address, count=0x4C
             )
@@ -989,7 +987,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         battery_status = decoder.decode_32bit_uint()
 
         # voltage and current are bogus in certain statuses
-        if not battery_status in [3, 4, 6]:
+        if battery_status not in [3, 4, 6]:
             self.modbus_data[battery_prefix + "voltage"] = 0
             self.modbus_data[battery_prefix + "current"] = 0
             self.modbus_data[battery_prefix + "power"] = 0
@@ -1005,10 +1003,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
 
 class SolarEdgeEntity(CoordinatorEntity):
-    """Representation of a solaredge entity"""
+    """Representation of a solaredge entity."""
 
     def __init__(self, hub: SolaredgeModbusHub) -> None:
-        """Init SolarEdgeEntity"""
+        """Init SolarEdgeEntity."""
         super().__init__(hub)
         self.hub = hub
         self._attr_device_info = DeviceInfo(

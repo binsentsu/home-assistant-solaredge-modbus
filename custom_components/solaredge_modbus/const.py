@@ -1,10 +1,11 @@
+from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.number import NumberEntityDescription
 from homeassistant.components.select import SelectEntityDescription
 from homeassistant.components.sensor import (
-    SensorEntityDescription,
     SensorDeviceClass,
+    SensorEntityDescription,
     SensorStateClass,
 )
 from homeassistant.const import (
@@ -13,13 +14,12 @@ from homeassistant.const import (
     POWER_VOLT_AMPERE_REACTIVE,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
-    UnitOfEnergy,
-    UnitOfElectricPotential,
     UnitOfTemperature,
 )
-from dataclasses import dataclass
 
 DOMAIN = "solaredge_modbus"
 DEFAULT_NAME = "solaredge"
@@ -642,7 +642,7 @@ STORAGE_SELECT_TYPES.extend(
 
 STORAGE_NUMBER_TYPES: list[SolarEdgeNumberDescription] = []
 
-# TODO Determine the maximum values properly
+"""# TODO Determine the maximum values properly"""
 STORAGE_NUMBER_TYPES.extend(
     [
         SolarEdgeNumberDescription(
