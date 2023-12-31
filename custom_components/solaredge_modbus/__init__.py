@@ -185,6 +185,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict:
         """Time to update."""
+        
+        if not self._check_and_reconnect():
+            #if not connected, skip
+            return
 
         try:
             self.read_modbus_data()
@@ -196,11 +200,27 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         """Disconnect client."""
         with self._lock:
             self._client.close()
+            
+    def _check_and_reconnect(self):
+        if not self._client.connected:
+            _LOGGER.info("modbus client is not connected, trying to reconnect")
+            return self.connect()
+
+        return self._client.connected
 
     def connect(self):
         """Connect client."""
+        result = False
         with self._lock:
-            self._client.connect()
+            result = self._client.connect()
+            
+        if result:
+            _LOGGER.info("successfully connected to %s:%s", 
+                         self._client.comm_params.host, self._client.comm_params.port)
+        else:
+            _LOGGER.warning("not able to connect to %s:%s", 
+                            self._client.comm_params.host, self._client.comm_params.port)
+        return result
 
     @property
     def power_control_enabled(self):
@@ -275,7 +295,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             return False
 
         decoder = BinaryPayloadDecoder.fromRegisters(
-            meter_data.registers, byteorder=Endian.Big
+            meter_data.registers, byteorder=Endian.BIG
         )
         accurrent = decoder.decode_16bit_int()
         accurrenta = decoder.decode_16bit_int()
@@ -583,7 +603,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             return False
 
         decoder = BinaryPayloadDecoder.fromRegisters(
-            inverter_data.registers, byteorder=Endian.Big
+            inverter_data.registers, byteorder=Endian.BIG
         )
         accurrent = decoder.decode_16bit_uint()
         accurrenta = decoder.decode_16bit_uint()
@@ -714,7 +734,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             return True
 
         decoder = BinaryPayloadDecoder.fromRegisters(
-            inverter_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
+            inverter_data.registers, byteorder=Endian.BIG, wordorder=Endian.LITTLE
         )
         # 0xF001 - 1 - Active Power Limit
         self.modbus_data["nominal_active_power_limit"] = decoder.decode_16bit_uint()
@@ -735,7 +755,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         )
         if not storage_data.isError():
             decoder = BinaryPayloadDecoder.fromRegisters(
-                storage_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
+                storage_data.registers, byteorder=Endian.BIG, wordorder=Endian.LITTLE
             )
 
             # 0xE000 - 1 - Export control mode
@@ -853,8 +873,8 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             if not battery_data.isError():
                 decoder = BinaryPayloadDecoder.fromRegisters(
                     battery_data.registers,
-                    byteorder=Endian.Big,
-                    wordorder=Endian.Little,
+                    byteorder=Endian.BIG,
+                    wordorder=Endian.LITTLE,
                 )
 
                 def decode_string(decoder):
@@ -910,7 +930,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             return False
 
         decoder = BinaryPayloadDecoder.fromRegisters(
-            storage_data.registers, byteorder=Endian.Big, wordorder=Endian.Little
+            storage_data.registers, byteorder=Endian.BIG, wordorder=Endian.LITTLE
         )
 
         # 0x6C - 2 - avg temp C
