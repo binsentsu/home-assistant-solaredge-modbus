@@ -183,7 +183,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             name=name,
             update_interval=timedelta(seconds=scan_interval),
         )
-        self._client = ModbusTcpClient(host=host, port=port, timeout=(scan_interval - 1))
+        self._client = ModbusTcpClient(host=host, port=port, timeout=max(3, (scan_interval - 1)))
         self._lock = threading.Lock()
         self._address = address
         self.power_control = power_control
