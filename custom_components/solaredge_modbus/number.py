@@ -23,7 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> None:
     """Execute the setup of number entities."""
     hub_name = entry.data[CONF_NAME]
-    hub = hass.data[DOMAIN][hub_name]["hub"]
+    hub : SolaredgeModbusHub = hass.data[DOMAIN][hub_name]["hub"]
 
     entities = []
 

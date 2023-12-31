@@ -642,7 +642,6 @@ STORAGE_SELECT_TYPES.extend(
 
 STORAGE_NUMBER_TYPES: list[SolarEdgeNumberDescription] = []
 
-"""# TODO Determine the maximum values properly"""
 STORAGE_NUMBER_TYPES.extend(
     [
         SolarEdgeNumberDescription(
