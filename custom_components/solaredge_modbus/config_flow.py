@@ -1,3 +1,4 @@
+"""Config flow for solaredge modbus integration."""
 import ipaddress
 import re
 

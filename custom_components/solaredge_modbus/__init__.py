@@ -195,18 +195,26 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         self.max_export_control_site_limit = max_export_control_site_limit
         self.modbus_data = {}
 
-    async def _async_update_data(self) -> dict:
-        """Time to update."""
-
+    def _update(self) -> dict:
+        """Update."""
         if not self._check_and_reconnect():
             #if not connected, skip
-            return
+            return self.modbus_data
 
         try:
             self.read_modbus_data()
             return self.modbus_data
         except (Exception) as error:
-                raise UpdateFailed(error) from error
+            raise UpdateFailed(error) from error
+
+    async def _async_update_data(self) -> dict:
+        """Time to update."""
+        try:
+            return await self.hass.async_add_executor_job(self._update)
+        except Exception as exc:
+            raise UpdateFailed(f"Error updating modbus data: {exc}") from exc
+
+
 
     async def close(self):
         """Disconnect client."""

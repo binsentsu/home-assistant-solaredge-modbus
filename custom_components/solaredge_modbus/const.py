@@ -1,3 +1,4 @@
+"""Constants and entity descriptions for solardedge modbus integration."""
 from dataclasses import dataclass
 from typing import Any
 
