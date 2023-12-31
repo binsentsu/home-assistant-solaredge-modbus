@@ -45,6 +45,8 @@ from .const import (
     STOREDGE_CONTROL_MODE,
     STOREDGE_AC_CHARGE_POLICY,
     STOREDGE_CHARGE_DISCHARGE_MODE,
+    CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
+    DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,6 +67,10 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): cv.boolean,
         vol.Optional(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+        ): cv.positive_int,
+        vol.Optional(
+            CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
+            default=DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
         ): cv.positive_int,
     }
 )
@@ -95,6 +101,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
     read_battery1 = entry.data.get(CONF_READ_BATTERY1, False)
     read_battery2 = entry.data.get(CONF_READ_BATTERY2, False)
+    max_export_control_site_limit = entry.data.get(
+        CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, False
+    )
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
@@ -111,6 +120,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         read_meter3,
         read_battery1,
         read_battery2,
+        max_export_control_site_limit
     )
     await hub.async_config_entry_first_refresh()
 
@@ -164,6 +174,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         read_meter3=False,
         read_battery1=False,
         read_battery2=False,
+        max_export_control_site_limit=False,
     ) -> None:
         """Initialize the Modbus hub."""
         super().__init__(
@@ -172,7 +183,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             name=name,
             update_interval=timedelta(seconds=scan_interval),
         )
-        self._client = ModbusTcpClient(host=host, port=port)
+        self._client = ModbusTcpClient(host=host, port=port, timeout=(scan_interval - 1))
         self._lock = threading.Lock()
         self._address = address
         self.power_control = power_control
@@ -181,6 +192,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         self.read_meter3 = read_meter3
         self.read_battery1 = read_battery1
         self.read_battery2 = read_battery2
+        self.max_export_control_site_limit = max_export_control_site_limit
         self.modbus_data = {}
 
     async def _async_update_data(self) -> dict:
