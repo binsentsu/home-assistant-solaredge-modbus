@@ -15,7 +15,7 @@
           "read_meter_3": "Read meter 3 data (only for meter models)",
           "read_battery_1": "Read battery 1 data (only when equipped)",
           "read_battery_2": "Read battery 2 data (only when equipped)",
-          "scan_interval": "The polling frequentie of the modbus registers in seconds"
+          "scan_interval": "The polling frequency of the modbus registers in seconds"
         }
       }
     },
