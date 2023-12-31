@@ -2,9 +2,9 @@
   "domain": "solaredge_modbus",
   "name": "SolarEdge Modbus",
   "documentation": "https://github.com/binsentsu/home-assistant-solaredge-modbus",
-  "requirements": ["pymodbus==3.5.1"],
+  "requirements": ["pymodbus==3.5.2"],
   "dependencies": [],
   "codeowners": ["@binsentsu"],
   "config_flow": true,
-  "version": "1.9.2"
+  "version": "1.10.0"
 }

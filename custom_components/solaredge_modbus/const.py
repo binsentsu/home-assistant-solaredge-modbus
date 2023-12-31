@@ -42,6 +42,8 @@ CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
 CONF_READ_BATTERY1 = "read_battery_1"
 CONF_READ_BATTERY2 = "read_battery_2"
+CONF_MAX_EXPORT_CONTROL_SITE_LIMIT = "max_export_control_site_limit"
+DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT = 10000
 METER_1 = "m1"
 METER_2 = "m2"
 METER_3 = "m3"
@@ -601,7 +603,7 @@ EXPORT_CONTROL_NUMBER_TYPES.append(
         key="export_control_site_limit",
         register=0xE002,
         fmt="f",
-        attrs={"min": 0, "max": 10000},
+        attrs={"min": 0, "max": DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT},
         native_unit_of_measurement=UnitOfPower.WATT,
     )
 )
