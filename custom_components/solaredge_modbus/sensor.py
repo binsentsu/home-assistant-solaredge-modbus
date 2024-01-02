@@ -137,8 +137,6 @@ class SolarEdgeSensor(SensorEntity):
         if self._unit_of_measurement == UnitOfEnergy.KILO_WATT_HOUR :
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
             self._attr_device_class = SensorDeviceClass.ENERGY
-            if SensorStateClass.TOTAL_INCREASING == SensorStateClass.MEASUREMENT: # compatibility to 2021.8
-                self._attr_last_reset = dt_util.utc_from_timestamp(0)
         if self._unit_of_measurement == UnitOfPower.WATT :
             self._attr_device_class = SensorDeviceClass.POWER
 
