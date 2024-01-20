@@ -29,12 +29,14 @@ from .const import (
     CONF_READ_METER3,
     CONF_READ_BATTERY1,
     CONF_READ_BATTERY2,
+    CONF_READ_BATTERY3,
     DEFAULT_POWER_CONTROL,
     DEFAULT_READ_METER1,
     DEFAULT_READ_METER2,
     DEFAULT_READ_METER3,
     DEFAULT_READ_BATTERY1,
     DEFAULT_READ_BATTERY2,
+    DEFAULT_READ_BATTERY3,
     BATTERY_STATUSSES,
     EXPORT_CONTROL_MODE,
     EXPORT_CONTROL_LIMIT_MODE,
@@ -61,6 +63,7 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,
         vol.Optional(CONF_READ_BATTERY1, default=DEFAULT_READ_BATTERY1): cv.boolean,
         vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): cv.boolean,
+        vol.Optional(CONF_READ_BATTERY3, default=DEFAULT_READ_BATTERY3): cv.boolean,
         vol.Optional(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): cv.positive_int,
@@ -97,6 +100,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     read_meter3 = entry.data.get(CONF_READ_METER3, DEFAULT_READ_METER3)
     read_battery1 = entry.data.get(CONF_READ_BATTERY1, DEFAULT_READ_BATTERY1)
     read_battery2 = entry.data.get(CONF_READ_BATTERY2, DEFAULT_READ_BATTERY2)
+    read_battery3 = entry.data.get(CONF_READ_BATTERY3, DEFAULT_READ_BATTERY3)
     max_export_control_site_limit = entry.data.get(
         CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT
     )
@@ -116,6 +120,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         read_meter3,
         read_battery1,
         read_battery2,
+        read_battery3,
         max_export_control_site_limit,
     )
     """Register the hub."""
@@ -176,6 +181,7 @@ class SolaredgeModbusHub:
         read_meter3=DEFAULT_READ_METER3,
         read_battery1=DEFAULT_READ_BATTERY1,
         read_battery2=DEFAULT_READ_BATTERY2,
+        read_battery3=DEFAULT_READ_BATTERY3,
         max_export_control_site_limit=DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT
     ):
         """Initialize the Modbus hub."""
@@ -190,6 +196,7 @@ class SolaredgeModbusHub:
         self.read_meter3 = read_meter3
         self.read_battery1 = read_battery1
         self.read_battery2 = read_battery2
+        self.read_battery3 = read_battery3
         self._scan_interval = timedelta(seconds=scan_interval)
         self.max_export_control_site_limit = max_export_control_site_limit
         self._unsub_interval_method = None
@@ -290,7 +297,7 @@ class SolaredgeModbusHub:
     @property
     def has_battery(self):
         """Return true if a battery is available"""
-        return self.read_battery1 or self.read_battery2
+        return self.read_battery1 or self.read_battery2 or self.read_battery3
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -319,6 +326,7 @@ class SolaredgeModbusHub:
             and self.read_modbus_data_storage()
             and self.read_modbus_data_battery1()
             and self.read_modbus_data_battery2()
+            and self.read_modbus_data_battery3()
         )
 
     def read_modbus_data_meter1(self):
@@ -855,7 +863,12 @@ class SolaredgeModbusHub:
         if self.read_battery2:
             return self.read_modbus_data_battery("battery2_", 0xE200)
         return True
-
+        
+    def read_modbus_data_battery3(self):
+        if self.read_battery3:
+            return self.read_modbus_data_battery("battery3_", 0xE400)
+        return True
+        
     def read_modbus_data_battery(self, battery_prefix, start_address):
         if not battery_prefix + "attrs" in self.data:
             battery_data = self.read_holding_registers(
