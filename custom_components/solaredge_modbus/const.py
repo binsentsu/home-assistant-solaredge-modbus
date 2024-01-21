@@ -9,6 +9,7 @@ DEFAULT_READ_METER2 = False
 DEFAULT_READ_METER3 = False
 DEFAULT_READ_BATTERY1 = False
 DEFAULT_READ_BATTERY2 = False
+DEFAULT_READ_BATTERY3 = False
 CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
 ATTR_MANUFACTURER = "Solaredge"
@@ -19,6 +20,7 @@ CONF_READ_METER2 = "read_meter_2"
 CONF_READ_METER3 = "read_meter_3"
 CONF_READ_BATTERY1 = "read_battery_1"
 CONF_READ_BATTERY2 = "read_battery_2"
+CONF_READ_BATTERY3 = "read_battery_3"
 CONF_MAX_EXPORT_CONTROL_SITE_LIMIT = "max_export_control_site_limit"
 DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT = 10000
 
@@ -268,6 +270,21 @@ BATTERY2_SENSOR_TYPES = {
     "BATTERY2_SOH": ["Battery2 State of Health", "battery2_state_of_health", "%", None],
     "BATTERY2_SOC": ["Battery2 State of Charge", "battery2_state_of_charge", "%", "mdi:battery-high"],
     "BATTERY2_Status": ["Battery2 Status", "battery2_status", None, None],
+}
+
+BATTERY3_SENSOR_TYPES = {
+    "BATTERY3_Temp_avg": ["Battery3 Temp Average", "battery3_temp_avg", "°C", None],
+    "BATTERY3_Temp_max": ["Battery3 Temp Maximum", "battery3_temp_max", "°C", None],
+    "BATTERY3_Voltage": ["Battery3 Voltage", "battery3_voltage", "V", None],
+    "BATTERY3_Current": ["Battery3 Current", "battery3_current", "A", None],
+    "BATTERY3_Power": ["Battery3 Power", "battery3_power", "W", "mdi:battery-charging-100"],
+    "BATTERY3_Discharged": ["Battery3 Discharged", "battery3_energy_discharged", "kWh", None],
+    "BATTERY3_Charged": ["Battery3 Charged", "battery3_energy_charged", "kWh", None],
+    "BATTERY3_Size_max": ["Battery3 Size Max", "battery3_size_max", "Wh", None],
+    "BATTERY3_Size_available": ["Battery3 Size Available", "battery3_size_available", "Wh", None],
+    "BATTERY3_SOH": ["Battery3 State of Health", "battery3_state_of_health", "%", None],
+    "BATTERY3_SOC": ["Battery3 State of Charge", "battery3_state_of_charge", "%", "mdi:battery-high"],
+    "BATTERY3_Status": ["Battery3 Status", "battery3_status", None, None],
 }
 
 DEVICE_STATUSSES = {

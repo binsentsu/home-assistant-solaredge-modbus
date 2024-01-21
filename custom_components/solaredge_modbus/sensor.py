@@ -7,6 +7,7 @@ from .const import (
     METER3_SENSOR_TYPES,
     BATTERY1_SENSOR_TYPES,
     BATTERY2_SENSOR_TYPES,
+    BATTERY3_SENSOR_TYPES,
     DOMAIN,
     ATTR_STATUS_DESCRIPTION,
     DEVICE_STATUSSES,
@@ -117,6 +118,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
             )
             entities.append(sensor)
 
+    if hub.read_battery3 == True:
+        for sensor_info in BATTERY3_SENSOR_TYPES.values():
+            sensor = SolarEdgeSensor(
+                hub_name,
+                hub,
+                device_info,
+                sensor_info[0],
+                sensor_info[1],
+                sensor_info[2],
+                sensor_info[3],
+            )
+            entities.append(sensor)
+
     async_add_entities(entities)
     return True
 
@@ -189,6 +203,8 @@ class SolarEdgeSensor(SensorEntity):
             return self._hub.data["battery1_attrs"]
         elif "battery2" in self._key and "battery2_attrs" in self._hub.data:
             return self._hub.data["battery2_attrs"]
+        elif "battery3" in self._key and "battery3_attrs" in self._hub.data:
+            return self._hub.data["battery3_attrs"]
         return None
 
     @property
