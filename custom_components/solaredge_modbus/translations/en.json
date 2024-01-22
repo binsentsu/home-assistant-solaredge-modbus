@@ -16,7 +16,8 @@
           "read_battery_1": "Read battery 1 data (only when equipped)",
           "read_battery_2": "Read battery 2 data (only when equipped)",
           "read_battery_3": "Read battery 3 data (only when equipped)",
-          "scan_interval": "The polling frequentie of the modbus registers in seconds"
+          "scan_interval": "The modbus registers polling interval [s]"
+          "max_export_control_site_limit": "The maximum export-control site-limit [W]"
         }
       }
     },
