@@ -16,7 +16,7 @@
           "read_battery_1": "Les batteri 1 data (bare når den er utstyrt)",
           "read_battery_2": "Les batteri 2 data (bare når den er utstyrt)",
           "read_battery_3": "Les batteri 3 data (bare når den er utstyrt)",
-          "scan_interval": "Modbussen registrerer pollingintervall [s]"
+          "scan_interval": "Modbussen registrerer pollingintervall [s]",
           "max_export_control_site_limit": "Den maksimale grensen for eksportkontrollnettsted [W]"
         }
       }
