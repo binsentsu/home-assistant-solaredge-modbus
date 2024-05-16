@@ -31,9 +31,9 @@ from .const import (
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
-    DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
-    DEFAULT_MODBUS_ADDRESS,
-    DEFAULT_NAME,
+    CONF_READ_BATTERY1,
+    CONF_READ_BATTERY2,
+    CONF_READ_BATTERY3,
     DEFAULT_POWER_CONTROL,
     DEFAULT_READ_BATTERY1,
     DEFAULT_READ_BATTERY2,
@@ -65,6 +65,7 @@ SOLAREDGE_MODBUS_SCHEMA = vol.Schema(
         vol.Optional(CONF_READ_METER3, default=DEFAULT_READ_METER3): cv.boolean,
         vol.Optional(CONF_READ_BATTERY1, default=DEFAULT_READ_BATTERY1): cv.boolean,
         vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): cv.boolean,
+        vol.Optional(CONF_READ_BATTERY3, default=DEFAULT_READ_BATTERY3): cv.boolean,
         vol.Optional(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): cv.positive_int,
@@ -95,12 +96,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     port = entry.data[CONF_PORT]
     address = entry.data.get(CONF_MODBUS_ADDRESS, 1)
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
-    power_control = entry.data.get(CONF_POWER_CONTROL, False)
-    read_meter1 = entry.data.get(CONF_READ_METER1, False)
-    read_meter2 = entry.data.get(CONF_READ_METER2, False)
-    read_meter3 = entry.data.get(CONF_READ_METER3, False)
-    read_battery1 = entry.data.get(CONF_READ_BATTERY1, False)
-    read_battery2 = entry.data.get(CONF_READ_BATTERY2, False)
+    power_control = entry.data.get(CONF_POWER_CONTROL, DEFAULT_POWER_CONTROL),
+    read_meter1 = entry.data.get(CONF_READ_METER1, DEFAULT_READ_METER1)
+    read_meter2 = entry.data.get(CONF_READ_METER2, DEFAULT_READ_METER2)
+    read_meter3 = entry.data.get(CONF_READ_METER3, DEFAULT_READ_METER3)
+    read_battery1 = entry.data.get(CONF_READ_BATTERY1, DEFAULT_READ_BATTERY1)
+    read_battery2 = entry.data.get(CONF_READ_BATTERY2, DEFAULT_READ_BATTERY2)
+    read_battery3 = entry.data.get(CONF_READ_BATTERY3, DEFAULT_READ_BATTERY3)
     max_export_control_site_limit = entry.data.get(
         CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, False
     )
@@ -120,7 +122,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         read_meter3,
         read_battery1,
         read_battery2,
-        max_export_control_site_limit
+        read_battery3,
+        max_export_control_site_limit,
     )
     await hub.async_config_entry_first_refresh()
 
@@ -174,6 +177,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         read_meter3=False,
         read_battery1=False,
         read_battery2=False,
+        read_battery3=False,
         max_export_control_site_limit=False,
     ) -> None:
         """Initialize the Modbus hub."""
@@ -192,6 +196,8 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         self.read_meter3 = read_meter3
         self.read_battery1 = read_battery1
         self.read_battery2 = read_battery2
+        self.read_battery3 = read_battery3
+        self._scan_interval = timedelta(seconds=scan_interval)
         self.max_export_control_site_limit = max_export_control_site_limit
         self.modbus_data = {}
 
@@ -255,7 +261,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
     @property
     def has_battery(self):
         """Return true if a battery is available."""
-        return self.read_battery1 or self.read_battery2
+        return self.read_battery1 or self.read_battery2 or self.read_battery3
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -286,6 +292,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             and self.read_modbus_data_storage()
             and self.read_modbus_data_battery1()
             and self.read_modbus_data_battery2()
+            and self.read_modbus_data_battery3()
         )
 
     def read_modbus_data_meter1(self):
@@ -881,7 +888,12 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         if self.read_battery2:
             return self.read_modbus_data_battery("battery2_", 0xE200)
         return True
-
+        
+    def read_modbus_data_battery3(self):
+        if self.read_battery3:
+            return self.read_modbus_data_battery("battery3_", 0xE400)
+        return True
+        
     def read_modbus_data_battery(self, battery_prefix, start_address):
         """Read battery data."""
         if battery_prefix + "attrs" not in self.modbus_data:

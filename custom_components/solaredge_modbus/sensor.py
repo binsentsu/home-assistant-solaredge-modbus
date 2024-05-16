@@ -11,6 +11,7 @@ from .const import (
     BATTERIES,
     BATTERY_1,
     BATTERY_2,
+    BATTERY_3,
     DEVICE_STATUSSES,
     DOMAIN,
     INVERTER_SENSORS,
@@ -51,6 +52,10 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     if hub.read_battery2:
         for battery_sensor_info in BATTERIES.get(BATTERY_2):
+            entities.append(SolarEdgeSensor(hub, battery_sensor_info))
+
+    if hub.read_battery3:
+        for battery_sensor_info in BATTERIES.get(BATTERY_3):
             entities.append(SolarEdgeSensor(hub, battery_sensor_info))
 
     async_add_entities(entities)

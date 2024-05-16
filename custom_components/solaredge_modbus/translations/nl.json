@@ -15,7 +15,9 @@
           "read_meter_3": "Lees meter 3 data (enkel voor voor meter modellen)",
           "read_battery_1": "Lees accu 1 data (alleen indien uitgerust)",
           "read_battery_2": "Lees accu 2 data (alleen indien uitgerust)",
-          "scan_interval": "De polling-frequentie van de modbus registratie in seconden"
+          "read_battery_3": "Lees accu 3 data (alleen indien uitgerust)",
+          "scan_interval": "Het modbus registers ververs-interval [s]",
+          "max_export_control_site_limit": "De maximale locatielimiet voor exportcontrole [W]"
         }
       }
     },
