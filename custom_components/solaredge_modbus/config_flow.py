@@ -14,12 +14,10 @@ from .const import (
     CONF_POWER_CONTROL,
     CONF_READ_BATTERY1,
     CONF_READ_BATTERY2,
+    CONF_READ_BATTERY3,
     CONF_READ_METER1,
     CONF_READ_METER2,
     CONF_READ_METER3,
-    CONF_READ_BATTERY1,
-    CONF_READ_BATTERY2,
-    CONF_READ_BATTERY3,
     DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
     DEFAULT_MODBUS_ADDRESS,
     DEFAULT_NAME,
@@ -34,8 +32,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
-
-from homeassistant.core import HomeAssistant, callback
 
 DATA_SCHEMA = vol.Schema(
     {

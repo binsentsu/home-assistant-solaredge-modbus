@@ -52,6 +52,7 @@ METER_2 = "m2"
 METER_3 = "m3"
 BATTERY_1 = "battery1"
 BATTERY_2 = "battery2"
+BATTERY_3 = "battery3"
 
 
 @dataclass
@@ -398,7 +399,7 @@ for key, value in METER_VARH_TYPES.items():
             )
         )
 
-BATTERIES = {BATTERY_1: [], BATTERY_2: []}
+BATTERIES = {BATTERY_1: [], BATTERY_2: [], BATTERY_3: []}
 
 BATTERY_TEMP_TYPES = {
     "temp_avg": "Temp Average",
@@ -480,7 +481,7 @@ for key, value in BATTERY_ENERGY_KWH_TYPES.items():
             SensorEntityDescription(
                 key=batteryKey + "_" + key,
                 name=batteryKey.capitalize() + " " + value,
-                device_class=SensorDeviceClass.ENERGY,
+                device_class=SensorDeviceClass.ENERGY_STORAGE,
                 native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
                 state_class=SensorStateClass.MEASUREMENT,
             )
@@ -492,7 +493,7 @@ for key, value in BATTERY_ENERGY_WH_TYPES.items():
             SensorEntityDescription(
                 key=batteryKey + "_" + key,
                 name=batteryKey.capitalize() + " " + value,
-                device_class=SensorDeviceClass.ENERGY,
+                device_class=SensorDeviceClass.ENERGY_STORAGE,
                 native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
                 state_class=SensorStateClass.MEASUREMENT,
             )
@@ -518,22 +519,6 @@ for batteryKey, batteryList in BATTERIES.items():
             state_class=SensorStateClass.MEASUREMENT,
         )
     )
-
-
-BATTERY3_SENSOR_TYPES = {
-    "BATTERY3_Temp_avg": ["Battery3 Temp Average", "battery3_temp_avg", "°C", None],
-    "BATTERY3_Temp_max": ["Battery3 Temp Maximum", "battery3_temp_max", "°C", None],
-    "BATTERY3_Voltage": ["Battery3 Voltage", "battery3_voltage", "V", None],
-    "BATTERY3_Current": ["Battery3 Current", "battery3_current", "A", None],
-    "BATTERY3_Power": ["Battery3 Power", "battery3_power", "W", "mdi:battery-charging-100"],
-    "BATTERY3_Discharged": ["Battery3 Discharged", "battery3_energy_discharged", "kWh", None],
-    "BATTERY3_Charged": ["Battery3 Charged", "battery3_energy_charged", "kWh", None],
-    "BATTERY3_Size_max": ["Battery3 Size Max", "battery3_size_max", "Wh", None],
-    "BATTERY3_Size_available": ["Battery3 Size Available", "battery3_size_available", "Wh", None],
-    "BATTERY3_SOH": ["Battery3 State of Health", "battery3_state_of_health", "%", None],
-    "BATTERY3_SOC": ["Battery3 State of Charge", "battery3_state_of_charge", "%", "mdi:battery-high"],
-    "BATTERY3_Status": ["Battery3 Status", "battery3_status", None, None],
-}
 
 DEVICE_STATUSSES = {
     1: "Off",
