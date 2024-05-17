@@ -145,23 +145,6 @@ async def async_unload_entry(hass: HomeAssistant, entry):
     return unload_ok
 
 
-def validate(value, comparison, against):
-    """TODO validate a value."""
-    if True:
-        return value
-    ops = {
-        ">": operator.gt,
-        "<": operator.lt,
-        ">=": operator.ge,
-        "<=": operator.le,
-        "==": operator.eq,
-        "!=": operator.ne,
-    }
-    if not ops[comparison](value, against):
-        raise ValueError(f"Value {value} failed validation ({comparison}{against})")
-    return value
-
-
 class SolaredgeModbusHub(DataUpdateCoordinator):
     """Thread safe wrapper class for pymodbus."""
 
@@ -474,11 +457,11 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         importedc = decoder.decode_32bit_uint()
         energywsf = decoder.decode_16bit_int()
 
-        exported = validate(self.calculate_value(exported, energywsf), ">", 0)
+        exported = self.calculate_value(exported, energywsf)
         exporteda = self.calculate_value(exporteda, energywsf)
         exportedb = self.calculate_value(exportedb, energywsf)
         exportedc = self.calculate_value(exportedc, energywsf)
-        imported = validate(self.calculate_value(imported, energywsf), ">", 0)
+        imported = self.calculate_value(imported, energywsf)
         importeda = self.calculate_value(importeda, energywsf)
         importedb = self.calculate_value(importedb, energywsf)
         importedc = self.calculate_value(importedc, energywsf)
@@ -703,7 +686,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
         acenergy = decoder.decode_32bit_uint()
         acenergysf = decoder.decode_16bit_uint()
-        acenergy = validate(self.calculate_value(acenergy, acenergysf), ">", 0)
+        acenergy = self.calculate_value(acenergy, acenergysf)
 
         self.modbus_data["acenergy"] = round(acenergy * 0.001, 3)
 
@@ -986,8 +969,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         # 0x82 - 2 - SoH %
         battery_SoH = decoder.decode_32bit_float()
         # 0x84 - 2 - SoC %
-        battery_SoC = validate(decoder.decode_32bit_float(), ">=", 0.0)
-        battery_SoC = validate(battery_SoC, "<", 101)
+        battery_SoC = decoder.decode_32bit_float()
 
         self.modbus_data[battery_prefix + "temp_avg"] = round(tempavg, 1)
         self.modbus_data[battery_prefix + "temp_max"] = round(tempmax, 1)
