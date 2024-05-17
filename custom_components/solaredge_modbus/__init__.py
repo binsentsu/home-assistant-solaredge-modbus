@@ -19,6 +19,8 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.exceptions import HomeAssistantError
+from pymodbus.exceptions import ModbusException
 
 from .const import (
     ATTR_MANUFACTURER,
@@ -256,10 +258,14 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
     def write_registers(self, unit, address, payload):
         """Write registers."""
-        with self._lock:
-            return self._client.write_registers(
-                address=address, values=payload, slave=unit
-            )
+        try:
+            with self._lock:
+                return self._client.write_registers(
+                    address=address, values=payload, slave=unit
+                )
+        except ModbusException as err:
+            raise HomeAssistantError(err) from err
+
 
     def calculate_value(self, value, sf):
         """Calculate a value using scaling factor."""
