@@ -9,9 +9,23 @@ Copy contents of custom_components folder to your home-assistant config/custom_c
 After reboot of Home-Assistant, this integration can be configured through the integration setup UI
 
 # Enabling Modbus TCP on SolarEdge Inverter
+
+## Ethernet Only
+> Note: you may need to remove the outer cover to access the buttons.
+
+1. Long hold "OK" (the rightmost button)
+2. Enter the password as "Up Down OK, Up Down OK, Up Down". (The screen will display 12312312)
+3. Use the down arrow to scroll down to Communication.
+4. Select LAN and press OK.
+5. Enable ModBus TCP.
+
+
+## Wifi Module
 1. Enable wifi direct on the inverter by switching the red toggle switch on the inverter to "P" position for less than 5 seconds.
 2. Connect to the inverter access point like you would for a normal wifi network. The wifi password is published at the right side of the inverter. 
 3. Open up a browser and go to http://172.16.0.1 > Site Communication. From this webpage you can enable modbus TCP without setApp or installer account.
+4. 
+
 
 ## Wifi based communication:
 We have seen several issues in the past, where the Integration was not able to connect to the inverter on Wifi-based setups.  
