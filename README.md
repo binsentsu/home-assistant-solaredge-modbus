@@ -26,15 +26,15 @@ Basically, setup the Modbus Proxy on a small computer such as an rPI - connect i
 
 Appendix B of the Solaredge [power control document][2] gives the necessary steps to allow changing the charge / discharge mode of the battery, but essentially all that you need to do is change the "Storage Control Mode" selector to "Remote" (it is usually set to "Maximise Self Consumption") and then select a mode using the "Storage Default Mode" selector. This can be done either from the UI or via an automation. Being able to control the battery charge / discharge mode like this opens up several possibilities:
 
-- Set mode to "Off" during periods of cheap import rate, saving the energy for periods of high import rate. Also this mode can be used to avoid discharging the house battery during a period of high demand e.g. while charging an EV.
+- Set mode to "Off" during periods of cheap import rate, saving energy for periods of high import rate. Also, this mode can be used to avoid discharging the house battery during a period of high demand e.g. while charging an EV.
 - Set mode to "Charge from PV and AC" during periods of negative import rate to get paid to charge it!
-- Set mode to "Maximise export" during periods of high export rates to stabilise grid and get maximum income from the energy being exported.
-- Set mode to "Maximise self consumption" at all other times to have the inverter automatically balance PV, battery and load.
+- Set mode to "Maximise export" during periods of high export rates to stabilise the grid and get maximum income from the energy being exported.
+- Set mode to "Maximise self-consumption" at all other times to have the inverter automatically balance PV, battery and load.
 
 Note that if you allow the battery to be charged from the grid, via the "Storage AC Charge Policy" selector, the self-consumption metric will disappear from the Solaredge monitoring - according to Solaredge technical support, this is because "they can't tell where the energy came from".
 
 # Control of inverter power output
-The active power limit of the inverter can be set from Home Assistant. This enables limiting or completely shutting down power output. For example in case of a dynamic energy contract in periods with a negative energy price. 
+The active power limit of the inverter can be set from Home Assistant. This enables limiting or completely shutting down power output. For example in the case of a dynamic energy contract in periods with a negative energy price. 
 
 The active power limit is set as the percentage of the inverter’s maximum power via `number.solaredge_active_power_limit`. For example: when you have a SE5000 inverter that has a maximum output of 5000W, setting the value of `number.solaredge_active_power_limit` to 20 will limit the inverter to 1000W which is 20% of 5000W. See [Power Control Protocol for Solaredge Inverters Technical Note][2] for detailed information.
 
@@ -42,9 +42,9 @@ The active power limit is set as the percentage of the inverter’s maximum powe
 Power control is disabled by default. It can be enabled in the configuration of this integration by setting `power_control` to true. When power control is enabled `number.solaredge_active_power_limit` is available in Home Assistant for reading and writing. The actual value of the active power limit is read together with the other values of the inverter. 
 
 ## Enabling Power Control on SolarEdge Inverter
-With default settings the inverter will not allow power control. It can be enabled in the same way that Modbus TCP is enabled on the SolarEdge Inverter, by connecting to the inverter with a web browser.
+With default settings, the inverter will not allow power control. It can be enabled in the same way that Modbus TCP is enabled on the SolarEdge Inverter, by connecting to the inverter with a web browser.
 
-These to settings must be applied in the Power Control menu:
+These two settings must be applied in the Power Control menu:
 
 1. Set Advanced Power Control to Enable
 2. Set Reactive Power mode to RRCR
