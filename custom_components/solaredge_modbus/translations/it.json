@@ -1,0 +1,31 @@
+{
+  "config": {
+    "title": "SolarEdge Modbus",
+    "step": {
+      "user": {
+        "title": "Definisci la connessione al tuo SolarEdge",
+        "data": {
+          "host": "L'indirizzo ip dell'inverter SolarEdge",
+          "name": "Il prefisso da usare per i sensori SolarEdge",
+          "port": "La porta TCP per connettersi all'inverter SolarEdge",
+          "modbus_address": "L'indirizzo modbus",
+          "power_control": "Abilita impostazione limite potenza attiva",
+          "read_meter_1": "Leggi dati meter 1 data (solo per modelli dotati di meter)",
+          "read_meter_2": "Leggi dati meter 2 data (solo per modelli dotati di meter)",
+          "read_meter_3": "Leggi dati meter 3 data (solo per modelli dotati di meter)",
+          "read_battery_1": "Leggi dati batteria 1 (solo quando presente)",
+          "read_battery_2": "Leggi dati batteria 2 (solo quando presente)",
+          "read_battery_3": "Leggi dati batteria 3 (solo quando presente)",
+          "scan_interval": "Il tempo di polling dei registri modbus [s]",
+          "max_export_control_site_limit": "Limite massimo di potenza esportata [W]"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Dispositivo già configurato"
+    },
+    "abort": {
+      "already_configured": "Dispositivo già configurato"
+    }
+  }
+}
