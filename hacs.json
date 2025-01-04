@@ -2,6 +2,6 @@
   "name": "Solaredge Modbus",
   "content_in_root": false,
   "domains": ["sensor"],
-  "homeassistant": "2024.8.0",
+  "homeassistant": "2025.1.0",
   "iot_class": "local_poll"
 }
