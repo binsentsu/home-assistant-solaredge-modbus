@@ -101,7 +101,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     port = entry.data[CONF_PORT]
     address = entry.data.get(CONF_MODBUS_ADDRESS, 1)
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
-    power_control = (entry.data.get(CONF_POWER_CONTROL, False),)
+    power_control = entry.data.get(CONF_POWER_CONTROL, False)
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
@@ -149,8 +149,6 @@ async def async_unload_entry(hass: HomeAssistant, entry):
 
 
 def validate(value, comparison, against):
-    if True:
-        return value
     """Validate value."""
     ops = {
         ">": operator.gt,
