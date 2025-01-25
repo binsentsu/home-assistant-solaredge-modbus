@@ -1,4 +1,5 @@
 """Solaredge number platform."""
+
 import logging
 
 from pymodbus.constants import Endian
@@ -23,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> None:
     """Execute the setup of number entities."""
     hub_name = entry.data[CONF_NAME]
-    hub : SolaredgeModbusHub = hass.data[DOMAIN][hub_name]["hub"]
+    hub: SolaredgeModbusHub = hass.data[DOMAIN][hub_name]["hub"]
 
     entities = []
 
@@ -72,11 +73,11 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
         """Get native value."""
         if self.entity_description.key in self.hub.data:
             return self.hub.data[self.entity_description.key]
+        return None
 
     async def async_set_native_value(self, value: float) -> None:
         """Change the selected value."""
-        builder = BinaryPayloadBuilder(
-            byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+        builder = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
 
         if self._fmt == "u32":
             builder.add_32bit_uint(int(value))
