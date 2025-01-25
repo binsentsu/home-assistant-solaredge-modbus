@@ -1,7 +1,12 @@
 """Solaredge sensors."""
+
 import logging
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 
@@ -78,9 +83,13 @@ class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         new_value = self.hub.data.get(self.entity_description.key)
-        """We keep old value when we would get a new value of 0 for a total increasing sensor"""
-        if ((self.entity_description.state_class != SensorStateClass.TOTAL_INCREASING) or (new_value is None) or (new_value > 0)) :
-           self._attr_native_value = new_value
+        """We keep old value when we would get a new value of 0 for a total increasing sensor."""
+        if (
+            (self.entity_description.state_class != SensorStateClass.TOTAL_INCREASING)
+            or (new_value is None)
+            or (new_value > 0)
+        ):
+            self._attr_native_value = new_value
 
         self._async_update_attrs()
         super()._handle_coordinator_update()

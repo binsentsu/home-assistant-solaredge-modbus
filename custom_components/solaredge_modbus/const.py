@@ -1,4 +1,5 @@
 """Constants and entity descriptions for solardedge modbus integration."""
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -12,13 +13,13 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     ATTR_SECONDS,
     PERCENTAGE,
-    POWER_VOLT_AMPERE_REACTIVE,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfReactivePower,
     UnitOfTemperature,
 )
 
@@ -100,7 +101,7 @@ INVERTER_VOLTAGE_TYPES: dict = {
     "acvoltageca": "AC Voltage CA",
     "acvoltagean": "AC Voltage AN",
     "acvoltagebn": "AC Voltage BN",
-    "acvoltagecn": "C Voltage CN",
+    "acvoltagecn": "AC Voltage CN",
     "dcvoltage": "DC Voltage",
 }
 
@@ -164,7 +165,7 @@ INVERTER_SENSORS.extend(
             key="acvar",
             name="AC VAR",
             device_class=SensorDeviceClass.REACTIVE_POWER,
-            native_unit_of_measurement=POWER_VOLT_AMPERE_REACTIVE,
+            native_unit_of_measurement=UnitOfReactivePower.VOLT_AMPERE_REACTIVE,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         SensorEntityDescription(
@@ -349,7 +350,7 @@ for key, value in METER_VAR_TYPES.items():
                 key=meterKey + "_" + key,
                 name=meterKey.upper() + " " + value,
                 device_class=SensorDeviceClass.REACTIVE_POWER,
-                native_unit_of_measurement=POWER_VOLT_AMPERE_REACTIVE,
+                native_unit_of_measurement=UnitOfReactivePower.VOLT_AMPERE_REACTIVE,
                 state_class=SensorStateClass.MEASUREMENT,
             )
         )

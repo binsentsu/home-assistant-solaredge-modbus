@@ -1,4 +1,5 @@
 """Config flow for solaredge modbus integration."""
+
 import ipaddress
 import re
 
@@ -47,7 +48,10 @@ DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_READ_BATTERY2, default=DEFAULT_READ_BATTERY2): bool,
         vol.Optional(CONF_READ_BATTERY3, default=DEFAULT_READ_BATTERY3): bool,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
-        vol.Optional(CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, default=DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT): int,
+        vol.Optional(
+            CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
+            default=DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT,
+        ): int,
     }
 )
 
@@ -103,4 +107,3 @@ class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", data_schema=DATA_SCHEMA, errors=errors
         )
-

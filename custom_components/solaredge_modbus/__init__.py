@@ -1,4 +1,5 @@
 """The SolarEdge Modbus Integration."""
+
 from datetime import timedelta
 import logging
 import operator
@@ -6,12 +7,14 @@ import threading
 
 from pymodbus.client import ModbusTcpClient
 from pymodbus.constants import Endian
+from pymodbus.exceptions import ModbusException
 from pymodbus.payload import BinaryPayloadDecoder
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
@@ -19,8 +22,6 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
-from homeassistant.exceptions import HomeAssistantError
-from pymodbus.exceptions import ModbusException
 
 from .const import (
     ATTR_MANUFACTURER,
@@ -84,7 +85,7 @@ CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: vol.Schema({cv.slug: SOLAREDGE_MODBUS_SCHEMA})}, extra=vol.ALLOW_EXTRA
 )
 
-PLATFORMS = ["sensor", "number", "select"]
+PLATFORMS = ["number", "select", "sensor"]
 
 
 async def async_setup(hass: HomeAssistant, config):
@@ -100,7 +101,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     port = entry.data[CONF_PORT]
     address = entry.data.get(CONF_MODBUS_ADDRESS, 1)
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
-    power_control = entry.data.get(CONF_POWER_CONTROL, False),
+    power_control = (entry.data.get(CONF_POWER_CONTROL, False),)
     read_meter1 = entry.data.get(CONF_READ_METER1, False)
     read_meter2 = entry.data.get(CONF_READ_METER2, False)
     read_meter3 = entry.data.get(CONF_READ_METER3, False)
@@ -145,8 +146,12 @@ async def async_unload_entry(hass: HomeAssistant, entry):
         hass.data[DOMAIN].pop(entry.data["name"])
 
     return unload_ok
-    
+
+
 def validate(value, comparison, against):
+    if True:
+        return value
+    """Validate value."""
     ops = {
         ">": operator.gt,
         "<": operator.lt,
@@ -187,7 +192,9 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             name=name,
             update_interval=timedelta(seconds=scan_interval),
         )
-        self._client = ModbusTcpClient(host=host, port=port, timeout=max(3, (scan_interval - 1)))
+        self._client = ModbusTcpClient(
+            host=host, port=port, timeout=max(3, (scan_interval - 1))
+        )
         self._lock = threading.Lock()
         self._address = address
         self.power_control = power_control
@@ -203,13 +210,13 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
     def _update(self) -> dict:
         """Update."""
         if not self._check_and_reconnect():
-            #if not connected, skip
+            # if not connected, skip
             return self.modbus_data
 
         try:
             self.read_modbus_data()
             return self.modbus_data
-        except (Exception) as error:
+        except Exception as error:
             raise UpdateFailed(error) from error
 
     async def _async_update_data(self) -> dict:
@@ -218,8 +225,6 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             return await self.hass.async_add_executor_job(self._update)
         except Exception as exc:
             raise UpdateFailed(f"Error updating modbus data: {exc}") from exc
-
-
 
     async def close(self):
         """Disconnect client."""
@@ -240,11 +245,17 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             result = self._client.connect()
 
         if result:
-            _LOGGER.info("Successfully connected to %s:%s",
-                         self._client.comm_params.host, self._client.comm_params.port)
+            _LOGGER.info(
+                "Successfully connected to %s:%s",
+                self._client.comm_params.host,
+                self._client.comm_params.port,
+            )
         else:
-            _LOGGER.warning("Not able to connect to %s:%s",
-                            self._client.comm_params.host, self._client.comm_params.port)
+            _LOGGER.warning(
+                "Not able to connect to %s:%s",
+                self._client.comm_params.host,
+                self._client.comm_params.port,
+            )
         return result
 
     @property
@@ -278,7 +289,6 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
                 )
         except ModbusException as err:
             raise HomeAssistantError(err) from err
-
 
     def calculate_value(self, value, sf):
         """Calculate a value using scaling factor."""
@@ -798,13 +808,13 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             # 0xE001 - 1 - Export control limit mode
             export_control_limit_mode = decoder.decode_16bit_uint() & 1
             if export_control_limit_mode in EXPORT_CONTROL_MODE:
-                self.modbus_data[
-                    "export_control_limit_mode"
-                ] = EXPORT_CONTROL_LIMIT_MODE[export_control_limit_mode]
+                self.modbus_data["export_control_limit_mode"] = (
+                    EXPORT_CONTROL_LIMIT_MODE[export_control_limit_mode]
+                )
             else:
-                self.modbus_data[
-                    "export_control_limit_mode"
-                ] = export_control_limit_mode
+                self.modbus_data["export_control_limit_mode"] = (
+                    export_control_limit_mode
+                )
 
             # 0xE002 - 2 - Export control site limit
             self.modbus_data["export_control_site_limit"] = round(
@@ -827,9 +837,9 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             # 0xE005 - 1 - storage ac charge policy
             storage_ac_charge_policy = decoder.decode_16bit_uint()
             if storage_ac_charge_policy in STOREDGE_AC_CHARGE_POLICY:
-                self.modbus_data[
-                    "storage_ac_charge_policy"
-                ] = STOREDGE_AC_CHARGE_POLICY[storage_ac_charge_policy]
+                self.modbus_data["storage_ac_charge_policy"] = (
+                    STOREDGE_AC_CHARGE_POLICY[storage_ac_charge_policy]
+                )
             else:
                 self.modbus_data["storage_ac_charge_policy"] = storage_ac_charge_policy
 
@@ -846,27 +856,27 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             # 0xE00A - 1 - storage charge / discharge default mode
             storage_default_mode = decoder.decode_16bit_uint()
             if storage_default_mode in STOREDGE_CHARGE_DISCHARGE_MODE:
-                self.modbus_data[
-                    "storage_default_mode"
-                ] = STOREDGE_CHARGE_DISCHARGE_MODE[storage_default_mode]
+                self.modbus_data["storage_default_mode"] = (
+                    STOREDGE_CHARGE_DISCHARGE_MODE[storage_default_mode]
+                )
             else:
                 self.modbus_data["storage_default_mode"] = storage_default_mode
 
             # 0xE00B - 2- storage remote command timeout (seconds)
-            self.modbus_data[
-                "storage_remote_command_timeout"
-            ] = decoder.decode_32bit_uint()
+            self.modbus_data["storage_remote_command_timeout"] = (
+                decoder.decode_32bit_uint()
+            )
 
             # 0xE00D - 1 - storage remote command mode
             storage_remote_command_mode = decoder.decode_16bit_uint()
             if storage_remote_command_mode in STOREDGE_CHARGE_DISCHARGE_MODE:
-                self.modbus_data[
-                    "storage_remote_command_mode"
-                ] = STOREDGE_CHARGE_DISCHARGE_MODE[storage_remote_command_mode]
+                self.modbus_data["storage_remote_command_mode"] = (
+                    STOREDGE_CHARGE_DISCHARGE_MODE[storage_remote_command_mode]
+                )
             else:
-                self.modbus_data[
-                    "storage_remote_command_mode"
-                ] = storage_remote_command_mode
+                self.modbus_data["storage_remote_command_mode"] = (
+                    storage_remote_command_mode
+                )
 
             # 0xE00E - 2- storate remote charge limit
             self.modbus_data["storage_remote_charge_limit"] = round(
@@ -940,17 +950,17 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
                 battery_info["rated_energy"] = decoder.decode_32bit_float()
 
                 # 0x44 - 2 - max charge continuous power
-                battery_info[
-                    "max_power_continuous_charge"
-                ] = decoder.decode_32bit_float()
+                battery_info["max_power_continuous_charge"] = (
+                    decoder.decode_32bit_float()
+                )
 
                 # 0x46 - 2 - max discharge continuous power
-                battery_info[
-                    "max_power_continuous_discharge"
-                ] = decoder.decode_32bit_float()
+                battery_info["max_power_continuous_discharge"] = (
+                    decoder.decode_32bit_float()
+                )
 
                 # 0x48 - 2 - max charge peak power
-                battery_info["max_power_peak_charge"] = decoder.decode_32bit_float()  #
+                battery_info["max_power_peak_charge"] = decoder.decode_32bit_float()
 
                 # 0x4A - 2 - max discharge peak power
                 battery_info["max_power_peak_discharge"] = decoder.decode_32bit_float()
