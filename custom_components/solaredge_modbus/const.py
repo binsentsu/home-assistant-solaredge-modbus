@@ -1,7 +1,7 @@
 """Constants and entity descriptions for solardedge modbus integration."""
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Final
 
 from homeassistant.components.number import NumberEntityDescription
 from homeassistant.components.select import SelectEntityDescription
@@ -54,6 +54,9 @@ METER_3 = "m3"
 BATTERY_1 = "battery1"
 BATTERY_2 = "battery2"
 BATTERY_3 = "battery3"
+
+ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
+ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
 
 @dataclass
@@ -388,6 +391,8 @@ for key, value in METER_VAH_TYPES.items():
             SensorEntityDescription(
                 key=meterKey + "_" + key,
                 name=meterKey.upper() + " " + value,
+                native_unit_of_measurement=ENERGY_VOLT_AMPERE_HOUR,
+                state_class=SensorStateClass.TOTAL_INCREASING,
             )
         )
 
@@ -397,6 +402,8 @@ for key, value in METER_VARH_TYPES.items():
             SensorEntityDescription(
                 key=meterKey + "_" + key,
                 name=meterKey.upper() + " " + value,
+                native_unit_of_measurement=ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
+                state_class=SensorStateClass.TOTAL_INCREASING,
             )
         )
 
