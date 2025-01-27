@@ -8,7 +8,6 @@ import threading
 from pymodbus.client import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.exceptions import ModbusException
-from pymodbus.payload import BinaryPayloadDecoder
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -53,6 +52,7 @@ from .const import (
     STOREDGE_CHARGE_DISCHARGE_MODE,
     STOREDGE_CONTROL_MODE,
 )
+from .payload import BinaryPayloadDecoder
 
 _LOGGER = logging.getLogger(__name__)
 
