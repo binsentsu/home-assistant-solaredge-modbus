@@ -522,9 +522,7 @@ for key, value in BATTERY_PERCENT_TYPES.items():
 for batteryKey, batteryList in BATTERIES.items():
     batteryList.append(
         SensorEntityDescription(
-            key=batteryKey + "_status",
-            name=batteryKey.capitalize() + " Status",
-            state_class=SensorStateClass.MEASUREMENT,
+            key=batteryKey + "_status", name=batteryKey.capitalize() + " Status"
         )
     )
 
