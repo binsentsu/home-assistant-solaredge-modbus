@@ -190,9 +190,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             name=name,
             update_interval=timedelta(seconds=scan_interval),
         )
-        self._client = ModbusTcpClient(
-            host=host, port=port, timeout=max(3, (scan_interval - 1))
-        )
+        self._client = None
+        self._host = host
+        self._port = port
+        self._timeout = max(3, (scan_interval - 1))
         self._lock = threading.Lock()
         self._address = address
         self.power_control = power_control
@@ -215,6 +216,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             self.read_modbus_data()
             return self.modbus_data
         except Exception as error:
+            self._close()
             raise UpdateFailed(error) from error
 
     async def _async_update_data(self) -> dict:
@@ -226,10 +228,22 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
     async def close(self):
         """Disconnect client."""
+        self._close()
+
+    def _close(self):
+        """Disconnect client."""
+        if self._client is None:
+            return
+
         with self._lock:
             self._client.close()
+            self._client = None
 
     def _check_and_reconnect(self):
+        if self._client is None:
+            self._client = ModbusTcpClient(
+                host=self._host, port=self._port, timeout=self._timeout
+            )
         if not self._client.connected:
             _LOGGER.info("Modbus client is not connected, trying to reconnect")
             return self.connect()
