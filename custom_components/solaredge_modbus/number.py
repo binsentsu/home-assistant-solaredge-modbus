@@ -61,7 +61,10 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
         self._register = description.register
         self._fmt = description.fmt
         self._attr_native_min_value = description.attrs["min"]
-        self._attr_native_max_value = description.attrs["max"]
+        if description.key == "export_control_site_limit":
+            self._attr_native_max_value = hub.max_export_control_site_limit
+        else:
+            self._attr_native_max_value = description.attrs["max"]
 
     @callback
     def _handle_coordinator_update(self) -> None:
