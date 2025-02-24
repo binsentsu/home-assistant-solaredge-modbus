@@ -489,9 +489,9 @@ for key, value in BATTERY_ENERGY_KWH_TYPES.items():
             SensorEntityDescription(
                 key=batteryKey + "_" + key,
                 name=batteryKey.capitalize() + " " + value,
-                device_class=SensorDeviceClass.ENERGY_STORAGE,
+                device_class=SensorDeviceClass.ENERGY,
                 native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-                state_class=SensorStateClass.MEASUREMENT,
+                state_class=SensorStateClass.TOTAL_INCREASING,
             )
         )
 
