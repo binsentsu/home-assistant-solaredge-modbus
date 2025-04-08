@@ -97,7 +97,7 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
             return
 
         response = self.hub.write_registers(
-            unit=1, address=self._register, payload=builder.to_registers()
+            unit=self.hub._address, address=self._register, payload=builder.to_registers()
         )
         if response.isError():
             _LOGGER.error(
