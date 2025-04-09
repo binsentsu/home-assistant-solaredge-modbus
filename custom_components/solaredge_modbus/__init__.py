@@ -4,6 +4,7 @@ from datetime import timedelta
 import logging
 import operator
 import threading
+from typing import cast
 
 from pymodbus.client import ModbusTcpClient
 from pymodbus.constants import Endian
@@ -226,6 +227,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         except Exception as exc:
             raise UpdateFailed(f"Error updating modbus data: {exc}") from exc
 
+    def get_unit(self) -> int:
+        """Get the configured unit."""
+        return cast(int, self._address)
+
     async def close(self):
         """Disconnect client."""
         self._close()
@@ -298,6 +303,16 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             with self._lock:
                 return self._client.write_registers(
                     address=address, values=payload, slave=unit
+                )
+        except ModbusException as err:
+            raise HomeAssistantError(err) from err
+
+    def write_register(self, unit, address, payload):
+        """Write register."""
+        try:
+            with self._lock:
+                return self._client.write_register(
+                    address=address, value=payload, slave=unit
                 )
         except ModbusException as err:
             raise HomeAssistantError(err) from err

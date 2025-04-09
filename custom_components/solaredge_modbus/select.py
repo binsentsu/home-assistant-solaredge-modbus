@@ -78,7 +78,9 @@ class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         new_mode = get_key(self._option_dict, option)
-        self.hub.write_registers(unit=self.hub._address, address=self._register, payload=new_mode)
+        self.hub.write_register(
+            unit=self.hub.get_unit(), address=self._register, payload=new_mode
+        )
 
         self.hub.data[self.entity_description.key] = option
         self.async_write_ha_state()
