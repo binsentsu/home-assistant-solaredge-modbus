@@ -297,7 +297,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         try:
             with self._lock:
                 return self._client.write_registers(
-                    address=address, values=payload, slave=unit
+                    address=address, values=[payload], slave=unit
                 )
         except ModbusException as err:
             raise HomeAssistantError(err) from err
