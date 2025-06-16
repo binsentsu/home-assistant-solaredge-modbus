@@ -319,7 +319,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
     def calculate_value(self, value, sf):
         """Calculate a value using scaling factor."""
-        return value * 10**sf
+        return round(value * 10**sf, max(0, -sf))
 
     def read_modbus_data(self):
         """Read all modbus data."""
@@ -375,18 +375,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         accurrentb = self.calculate_value(accurrentb, accurrentsf)
         accurrentc = self.calculate_value(accurrentc, accurrentsf)
 
-        self.modbus_data[meter_prefix + "accurrent"] = round(
-            accurrent, abs(accurrentsf)
-        )
-        self.modbus_data[meter_prefix + "accurrenta"] = round(
-            accurrenta, abs(accurrentsf)
-        )
-        self.modbus_data[meter_prefix + "accurrentb"] = round(
-            accurrentb, abs(accurrentsf)
-        )
-        self.modbus_data[meter_prefix + "accurrentc"] = round(
-            accurrentc, abs(accurrentsf)
-        )
+        self.modbus_data[meter_prefix + "accurrent"] = accurrent
+        self.modbus_data[meter_prefix + "accurrenta"] = accurrenta
+        self.modbus_data[meter_prefix + "accurrentb"] = accurrentb
+        self.modbus_data[meter_prefix + "accurrentc"] = accurrentc
 
         acvoltageln = decoder.decode_16bit_int()
         acvoltagean = decoder.decode_16bit_int()
@@ -407,37 +399,21 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         acvoltagebc = self.calculate_value(acvoltagebc, acvoltagesf)
         acvoltageca = self.calculate_value(acvoltageca, acvoltagesf)
 
-        self.modbus_data[meter_prefix + "acvoltageln"] = round(
-            acvoltageln, abs(acvoltagesf)
-        )
-        self.modbus_data[meter_prefix + "acvoltagean"] = round(
-            acvoltagean, abs(acvoltagesf)
-        )
-        self.modbus_data[meter_prefix + "acvoltagebn"] = round(
-            acvoltagebn, abs(acvoltagesf)
-        )
-        self.modbus_data[meter_prefix + "acvoltagecn"] = round(
-            acvoltagecn, abs(acvoltagesf)
-        )
-        self.modbus_data[meter_prefix + "acvoltagell"] = round(
-            acvoltagell, abs(acvoltagesf)
-        )
-        self.modbus_data[meter_prefix + "acvoltageab"] = round(
-            acvoltageab, abs(acvoltagesf)
-        )
-        self.modbus_data[meter_prefix + "acvoltagebc"] = round(
-            acvoltagebc, abs(acvoltagesf)
-        )
-        self.modbus_data[meter_prefix + "acvoltageca"] = round(
-            acvoltageca, abs(acvoltagesf)
-        )
+        self.modbus_data[meter_prefix + "acvoltageln"] = acvoltageln
+        self.modbus_data[meter_prefix + "acvoltagean"] = acvoltagean
+        self.modbus_data[meter_prefix + "acvoltagebn"] = acvoltagebn
+        self.modbus_data[meter_prefix + "acvoltagecn"] = acvoltagecn
+        self.modbus_data[meter_prefix + "acvoltagell"] = acvoltagell
+        self.modbus_data[meter_prefix + "acvoltageab"] = acvoltageab
+        self.modbus_data[meter_prefix + "acvoltagebc"] = acvoltagebc
+        self.modbus_data[meter_prefix + "acvoltageca"] = acvoltageca
 
         acfreq = decoder.decode_16bit_int()
         acfreqsf = decoder.decode_16bit_int()
 
         acfreq = self.calculate_value(acfreq, acfreqsf)
 
-        self.modbus_data[meter_prefix + "acfreq"] = round(acfreq, abs(acfreqsf))
+        self.modbus_data[meter_prefix + "acfreq"] = acfreq
 
         acpower = decoder.decode_16bit_int()
         acpowera = decoder.decode_16bit_int()
@@ -450,10 +426,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         acpowerb = self.calculate_value(acpowerb, acpowersf)
         acpowerc = self.calculate_value(acpowerc, acpowersf)
 
-        self.modbus_data[meter_prefix + "acpower"] = round(acpower, abs(acpowersf))
-        self.modbus_data[meter_prefix + "acpowera"] = round(acpowera, abs(acpowersf))
-        self.modbus_data[meter_prefix + "acpowerb"] = round(acpowerb, abs(acpowersf))
-        self.modbus_data[meter_prefix + "acpowerc"] = round(acpowerc, abs(acpowersf))
+        self.modbus_data[meter_prefix + "acpower"] = acpower
+        self.modbus_data[meter_prefix + "acpowera"] = acpowera
+        self.modbus_data[meter_prefix + "acpowerb"] = acpowerb
+        self.modbus_data[meter_prefix + "acpowerc"] = acpowerc
 
         acva = decoder.decode_16bit_int()
         acvaa = decoder.decode_16bit_int()
@@ -466,10 +442,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         acvab = self.calculate_value(acvab, acvasf)
         acvac = self.calculate_value(acvac, acvasf)
 
-        self.modbus_data[meter_prefix + "acva"] = round(acva, abs(acvasf))
-        self.modbus_data[meter_prefix + "acvaa"] = round(acvaa, abs(acvasf))
-        self.modbus_data[meter_prefix + "acvab"] = round(acvab, abs(acvasf))
-        self.modbus_data[meter_prefix + "acvac"] = round(acvac, abs(acvasf))
+        self.modbus_data[meter_prefix + "acva"] = acva
+        self.modbus_data[meter_prefix + "acvaa"] = acvaa
+        self.modbus_data[meter_prefix + "acvab"] = acvab
+        self.modbus_data[meter_prefix + "acvac"] = acvac
 
         acvar = decoder.decode_16bit_int()
         acvara = decoder.decode_16bit_int()
@@ -482,10 +458,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         acvarb = self.calculate_value(acvarb, acvarsf)
         acvarc = self.calculate_value(acvarc, acvarsf)
 
-        self.modbus_data[meter_prefix + "acvar"] = round(acvar, abs(acvarsf))
-        self.modbus_data[meter_prefix + "acvara"] = round(acvara, abs(acvarsf))
-        self.modbus_data[meter_prefix + "acvarb"] = round(acvarb, abs(acvarsf))
-        self.modbus_data[meter_prefix + "acvarc"] = round(acvarc, abs(acvarsf))
+        self.modbus_data[meter_prefix + "acvar"] = acvar
+        self.modbus_data[meter_prefix + "acvara"] = acvara
+        self.modbus_data[meter_prefix + "acvarb"] = acvarb
+        self.modbus_data[meter_prefix + "acvarc"] = acvarc
 
         acpf = decoder.decode_16bit_int()
         acpfa = decoder.decode_16bit_int()
@@ -498,10 +474,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         acpfb = self.calculate_value(acpfb, acpfsf)
         acpfc = self.calculate_value(acpfc, acpfsf)
 
-        self.modbus_data[meter_prefix + "acpf"] = round(acpf, abs(acpfsf))
-        self.modbus_data[meter_prefix + "acpfa"] = round(acpfa, abs(acpfsf))
-        self.modbus_data[meter_prefix + "acpfb"] = round(acpfb, abs(acpfsf))
-        self.modbus_data[meter_prefix + "acpfc"] = round(acpfc, abs(acpfsf))
+        self.modbus_data[meter_prefix + "acpf"] = acpf
+        self.modbus_data[meter_prefix + "acpfa"] = acpfa
+        self.modbus_data[meter_prefix + "acpfb"] = acpfb
+        self.modbus_data[meter_prefix + "acpfc"] = acpfc
 
         exported = decoder.decode_32bit_uint()
         exporteda = decoder.decode_32bit_uint()
@@ -550,30 +526,14 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         importedvab = self.calculate_value(importedvab, energyvasf)
         importedvac = self.calculate_value(importedvac, energyvasf)
 
-        self.modbus_data[meter_prefix + "exportedva"] = round(
-            exportedva, abs(energyvasf)
-        )
-        self.modbus_data[meter_prefix + "exportedvaa"] = round(
-            exportedvaa, abs(energyvasf)
-        )
-        self.modbus_data[meter_prefix + "exportedvab"] = round(
-            exportedvab, abs(energyvasf)
-        )
-        self.modbus_data[meter_prefix + "exportedvac"] = round(
-            exportedvac, abs(energyvasf)
-        )
-        self.modbus_data[meter_prefix + "importedva"] = round(
-            importedva, abs(energyvasf)
-        )
-        self.modbus_data[meter_prefix + "importedvaa"] = round(
-            importedvaa, abs(energyvasf)
-        )
-        self.modbus_data[meter_prefix + "importedvab"] = round(
-            importedvab, abs(energyvasf)
-        )
-        self.modbus_data[meter_prefix + "importedvac"] = round(
-            importedvac, abs(energyvasf)
-        )
+        self.modbus_data[meter_prefix + "exportedva"] = exportedva
+        self.modbus_data[meter_prefix + "exportedvaa"] = exportedvaa
+        self.modbus_data[meter_prefix + "exportedvab"] = exportedvab
+        self.modbus_data[meter_prefix + "exportedvac"] = exportedvac
+        self.modbus_data[meter_prefix + "importedva"] = importedva
+        self.modbus_data[meter_prefix + "importedvaa"] = importedvaa
+        self.modbus_data[meter_prefix + "importedvab"] = importedvab
+        self.modbus_data[meter_prefix + "importedvac"] = importedvac
 
         importvarhq1 = decoder.decode_32bit_uint()
         importvarhq1a = decoder.decode_32bit_uint()
@@ -610,54 +570,22 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         importvarhq4b = self.calculate_value(importvarhq4b, energyvarsf)
         importvarhq4c = self.calculate_value(importvarhq4c, energyvarsf)
 
-        self.modbus_data[meter_prefix + "importvarhq1"] = round(
-            importvarhq1, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq1a"] = round(
-            importvarhq1a, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq1b"] = round(
-            importvarhq1b, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq1c"] = round(
-            importvarhq1c, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq2"] = round(
-            importvarhq2, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq2a"] = round(
-            importvarhq2a, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq2b"] = round(
-            importvarhq2b, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq2c"] = round(
-            importvarhq2c, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq3"] = round(
-            importvarhq3, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq3a"] = round(
-            importvarhq3a, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq3b"] = round(
-            importvarhq3b, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq3c"] = round(
-            importvarhq3c, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq4"] = round(
-            importvarhq4, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq4a"] = round(
-            importvarhq4a, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq4b"] = round(
-            importvarhq4b, abs(energyvarsf)
-        )
-        self.modbus_data[meter_prefix + "importvarhq4c"] = round(
-            importvarhq4c, abs(energyvarsf)
-        )
+        self.modbus_data[meter_prefix + "importvarhq1"] = importvarhq1
+        self.modbus_data[meter_prefix + "importvarhq1a"] = importvarhq1a
+        self.modbus_data[meter_prefix + "importvarhq1b"] = importvarhq1b
+        self.modbus_data[meter_prefix + "importvarhq1c"] = importvarhq1c
+        self.modbus_data[meter_prefix + "importvarhq2"] = importvarhq2
+        self.modbus_data[meter_prefix + "importvarhq2a"] = importvarhq2a
+        self.modbus_data[meter_prefix + "importvarhq2b"] = importvarhq2b
+        self.modbus_data[meter_prefix + "importvarhq2c"] = importvarhq2c
+        self.modbus_data[meter_prefix + "importvarhq3"] = importvarhq3
+        self.modbus_data[meter_prefix + "importvarhq3a"] = importvarhq3a
+        self.modbus_data[meter_prefix + "importvarhq3b"] = importvarhq3b
+        self.modbus_data[meter_prefix + "importvarhq3c"] = importvarhq3c
+        self.modbus_data[meter_prefix + "importvarhq4"] = importvarhq4
+        self.modbus_data[meter_prefix + "importvarhq4a"] = importvarhq4a
+        self.modbus_data[meter_prefix + "importvarhq4b"] = importvarhq4b
+        self.modbus_data[meter_prefix + "importvarhq4c"] = importvarhq4c
 
         return True
 
@@ -683,10 +611,10 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         accurrentb = self.calculate_value(accurrentb, accurrentsf)
         accurrentc = self.calculate_value(accurrentc, accurrentsf)
 
-        self.modbus_data["accurrent"] = round(accurrent, abs(accurrentsf))
-        self.modbus_data["accurrenta"] = round(accurrenta, abs(accurrentsf))
-        self.modbus_data["accurrentb"] = round(accurrentb, abs(accurrentsf))
-        self.modbus_data["accurrentc"] = round(accurrentc, abs(accurrentsf))
+        self.modbus_data["accurrent"] = accurrent
+        self.modbus_data["accurrenta"] = accurrenta
+        self.modbus_data["accurrentb"] = accurrentb
+        self.modbus_data["accurrentc"] = accurrentc
 
         acvoltageab = decoder.decode_16bit_uint()
         acvoltagebc = decoder.decode_16bit_uint()
@@ -703,42 +631,42 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         acvoltagebn = self.calculate_value(acvoltagebn, acvoltagesf)
         acvoltagecn = self.calculate_value(acvoltagecn, acvoltagesf)
 
-        self.modbus_data["acvoltageab"] = round(acvoltageab, abs(acvoltagesf))
-        self.modbus_data["acvoltagebc"] = round(acvoltagebc, abs(acvoltagesf))
-        self.modbus_data["acvoltageca"] = round(acvoltageca, abs(acvoltagesf))
-        self.modbus_data["acvoltagean"] = round(acvoltagean, abs(acvoltagesf))
-        self.modbus_data["acvoltagebn"] = round(acvoltagebn, abs(acvoltagesf))
-        self.modbus_data["acvoltagecn"] = round(acvoltagecn, abs(acvoltagesf))
+        self.modbus_data["acvoltageab"] = acvoltageab
+        self.modbus_data["acvoltagebc"] = acvoltagebc
+        self.modbus_data["acvoltageca"] = acvoltageca
+        self.modbus_data["acvoltagean"] = acvoltagean
+        self.modbus_data["acvoltagebn"] = acvoltagebn
+        self.modbus_data["acvoltagecn"] = acvoltagecn
 
         acpower = decoder.decode_16bit_int()
         acpowersf = decoder.decode_16bit_int()
         acpower = self.calculate_value(acpower, acpowersf)
 
-        self.modbus_data["acpower"] = round(acpower, abs(acpowersf))
+        self.modbus_data["acpower"] = acpower
 
         acfreq = decoder.decode_16bit_uint()
         acfreqsf = decoder.decode_16bit_int()
         acfreq = self.calculate_value(acfreq, acfreqsf)
 
-        self.modbus_data["acfreq"] = round(acfreq, abs(acfreqsf))
+        self.modbus_data["acfreq"] = acfreq
 
         acva = decoder.decode_16bit_int()
         acvasf = decoder.decode_16bit_int()
         acva = self.calculate_value(acva, acvasf)
 
-        self.modbus_data["acva"] = round(acva, abs(acvasf))
+        self.modbus_data["acva"] = acva
 
         acvar = decoder.decode_16bit_int()
         acvarsf = decoder.decode_16bit_int()
         acvar = self.calculate_value(acvar, acvarsf)
 
-        self.modbus_data["acvar"] = round(acvar, abs(acvarsf))
+        self.modbus_data["acvar"] = acvar
 
         acpf = decoder.decode_16bit_int()
         acpfsf = decoder.decode_16bit_int()
         acpf = self.calculate_value(acpf, acpfsf)
 
-        self.modbus_data["acpf"] = round(acpf, abs(acpfsf))
+        self.modbus_data["acpf"] = acpf
 
         acenergy = decoder.decode_32bit_uint()
         acenergysf = decoder.decode_16bit_uint()
@@ -750,19 +678,19 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         dccurrentsf = decoder.decode_16bit_int()
         dccurrent = self.calculate_value(dccurrent, dccurrentsf)
 
-        self.modbus_data["dccurrent"] = round(dccurrent, abs(dccurrentsf))
+        self.modbus_data["dccurrent"] = dccurrent
 
         dcvoltage = decoder.decode_16bit_uint()
         dcvoltagesf = decoder.decode_16bit_int()
         dcvoltage = self.calculate_value(dcvoltage, dcvoltagesf)
 
-        self.modbus_data["dcvoltage"] = round(dcvoltage, abs(dcvoltagesf))
+        self.modbus_data["dcvoltage"] = dcvoltage
 
         dcpower = decoder.decode_16bit_int()
         dcpowersf = decoder.decode_16bit_int()
         dcpower = self.calculate_value(dcpower, dcpowersf)
 
-        self.modbus_data["dcpower"] = round(dcpower, abs(dcpowersf))
+        self.modbus_data["dcpower"] = dcpower
 
         # skip register
         decoder.skip_bytes(2)
@@ -775,7 +703,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         tempsf = decoder.decode_16bit_int()
         tempsink = self.calculate_value(tempsink, tempsf)
 
-        self.modbus_data["tempsink"] = round(tempsink, abs(tempsf))
+        self.modbus_data["tempsink"] = tempsink
 
         status = decoder.decode_16bit_int()
         self.modbus_data["status"] = status
