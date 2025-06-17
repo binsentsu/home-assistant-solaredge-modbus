@@ -444,7 +444,10 @@ class BinaryPayloadDecoder:
         :param size: The size of the string to decode
         """
         self._pointer += size
-        return self._payload[self._pointer - size : self._pointer]
+        s = self._payload[self._pointer - size : self._pointer]
+        s = s.rstrip(b"\0")  # omit NULL terminators
+        s = s.decode()
+        return s
 
     def skip_bytes(self, nbytes):
         """Skip n bytes in the buffer.
