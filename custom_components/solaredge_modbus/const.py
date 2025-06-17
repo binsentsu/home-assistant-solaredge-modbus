@@ -548,7 +548,7 @@ EXPORT_CONTROL_MODE = {
 
 EXPORT_CONTROL_LIMIT_MODE = {0: "Total", 1: "Per phase"}
 
-STOREDGE_CONTROL_MODE = {
+STORAGE_CONTROL_MODE = {
     0: "Disabled",
     1: "Maximize Self Consumption",
     2: "Time of Use",
@@ -556,14 +556,14 @@ STOREDGE_CONTROL_MODE = {
     4: "Remote Control",
 }
 
-STOREDGE_AC_CHARGE_POLICY = {
+STORAGE_AC_CHARGE_POLICY = {
     0: "Disabled",
     1: "Always Allowed",
     2: "Fixed Energy Limit",
     3: "Percent of Production",
 }
 
-STOREDGE_CHARGE_DISCHARGE_MODE = {
+STORAGE_CHARGE_DISCHARGE_MODE = {
     0: "Off",
     1: "Charge from excess PV power only",
     2: "Charge from PV first",
@@ -625,25 +625,25 @@ STORAGE_SELECT_TYPES.extend(
             key="storage_contol_mode",
             name="Storage Control Mode",
             register=0xE004,
-            options_dict=STOREDGE_CONTROL_MODE,
+            options_dict=STORAGE_CONTROL_MODE,
         ),
         SolarEdgeSelectDescription(
             key="storage_ac_charge_policy",
             name="Storage AC Charge Policy",
             register=0xE005,
-            options_dict=STOREDGE_AC_CHARGE_POLICY,
+            options_dict=STORAGE_AC_CHARGE_POLICY,
         ),
         SolarEdgeSelectDescription(
             key="storage_default_mode",
             name="Storage Default Mode",
             register=0xE00A,
-            options_dict=STOREDGE_CHARGE_DISCHARGE_MODE,
+            options_dict=STORAGE_CHARGE_DISCHARGE_MODE,
         ),
         SolarEdgeSelectDescription(
             key="storage_remote_command_mode",
             name="Storage Remote Command Mode",
             register=0xE00D,
-            options_dict=STOREDGE_CHARGE_DISCHARGE_MODE,
+            options_dict=STORAGE_CHARGE_DISCHARGE_MODE,
         ),
     ]
 )
