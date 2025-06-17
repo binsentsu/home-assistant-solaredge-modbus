@@ -49,9 +49,9 @@ from .const import (
     DOMAIN,
     EXPORT_CONTROL_LIMIT_MODE,
     EXPORT_CONTROL_MODE,
-    STOREDGE_AC_CHARGE_POLICY,
-    STOREDGE_CHARGE_DISCHARGE_MODE,
-    STOREDGE_CONTROL_MODE,
+    STORAGE_AC_CHARGE_POLICY,
+    STORAGE_CHARGE_DISCHARGE_MODE,
+    STORAGE_CONTROL_MODE,
 )
 from .payload import BinaryPayloadDecoder
 
@@ -809,7 +809,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
     def read_modbus_data_storage(self):
         """Read storage data."""
         if self.has_battery:
-            count = 0x12  # Read storedge block as well
+            count = 0x12  # Read storage block as well
         elif self.has_meter:
             count = 4  # Just read export control block
         else:
@@ -854,8 +854,8 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
             # 0xE004 - 1 - storage control mode
             storage_control_mode = decoder.decode_16bit_uint()
-            if storage_control_mode in STOREDGE_CONTROL_MODE:
-                self.modbus_data["storage_contol_mode"] = STOREDGE_CONTROL_MODE[
+            if storage_control_mode in STORAGE_CONTROL_MODE:
+                self.modbus_data["storage_contol_mode"] = STORAGE_CONTROL_MODE[
                     storage_control_mode
                 ]
             else:
@@ -863,9 +863,9 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
             # 0xE005 - 1 - storage ac charge policy
             storage_ac_charge_policy = decoder.decode_16bit_uint()
-            if storage_ac_charge_policy in STOREDGE_AC_CHARGE_POLICY:
+            if storage_ac_charge_policy in STORAGE_AC_CHARGE_POLICY:
                 self.modbus_data["storage_ac_charge_policy"] = (
-                    STOREDGE_AC_CHARGE_POLICY[storage_ac_charge_policy]
+                    STORAGE_AC_CHARGE_POLICY[storage_ac_charge_policy]
                 )
             else:
                 self.modbus_data["storage_ac_charge_policy"] = storage_ac_charge_policy
@@ -882,9 +882,9 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
             # 0xE00A - 1 - storage charge / discharge default mode
             storage_default_mode = decoder.decode_16bit_uint()
-            if storage_default_mode in STOREDGE_CHARGE_DISCHARGE_MODE:
+            if storage_default_mode in STORAGE_CHARGE_DISCHARGE_MODE:
                 self.modbus_data["storage_default_mode"] = (
-                    STOREDGE_CHARGE_DISCHARGE_MODE[storage_default_mode]
+                    STORAGE_CHARGE_DISCHARGE_MODE[storage_default_mode]
                 )
             else:
                 self.modbus_data["storage_default_mode"] = storage_default_mode
@@ -896,9 +896,9 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
             # 0xE00D - 1 - storage remote command mode
             storage_remote_command_mode = decoder.decode_16bit_uint()
-            if storage_remote_command_mode in STOREDGE_CHARGE_DISCHARGE_MODE:
+            if storage_remote_command_mode in STORAGE_CHARGE_DISCHARGE_MODE:
                 self.modbus_data["storage_remote_command_mode"] = (
-                    STOREDGE_CHARGE_DISCHARGE_MODE[storage_remote_command_mode]
+                    STORAGE_CHARGE_DISCHARGE_MODE[storage_remote_command_mode]
                 )
             else:
                 self.modbus_data["storage_remote_command_mode"] = (
