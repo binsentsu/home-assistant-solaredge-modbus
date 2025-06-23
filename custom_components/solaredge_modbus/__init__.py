@@ -1,12 +1,12 @@
 """The SolarEdge Modbus Integration."""
 
 from datetime import timedelta
+import asyncio
 import logging
 import operator
-import threading
 from typing import cast
 
-from pymodbus.client import ModbusTcpClient
+from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.exceptions import ModbusException
 import voluptuous as vol
@@ -195,7 +195,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         self._host = host
         self._port = port
         self._timeout = max(3, (scan_interval - 1))
-        self._lock = threading.Lock()
+        self._lock = asyncio.Lock()
         self._address = address
         self.power_control = power_control
         self.read_meter1 = read_meter1
@@ -207,23 +207,23 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         self.max_export_control_site_limit = max_export_control_site_limit
         self.modbus_data = {}
 
-    def _update(self) -> dict:
+    async def _update(self) -> dict:
         """Update."""
-        if not self._check_and_reconnect():
+        if not await self._check_and_reconnect():
             # if not connected, skip
             return self.modbus_data
 
         try:
-            self.read_modbus_data()
+            await self.read_modbus_data()
             return self.modbus_data
         except Exception as error:
-            self._close()
+            await self.close()
             raise UpdateFailed(error) from error
 
     async def _async_update_data(self) -> dict:
         """Time to update."""
         try:
-            return await self.hass.async_add_executor_job(self._update)
+            return await self._update()
         except Exception as exc:
             raise UpdateFailed(f"Error updating modbus data: {exc}") from exc
 
@@ -233,33 +233,28 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
     async def close(self):
         """Disconnect client."""
-        self._close()
-
-    def _close(self):
-        """Disconnect client."""
         if self._client is None:
             return
 
-        with self._lock:
+        async with self._lock:
             self._client.close()
             self._client = None
 
-    def _check_and_reconnect(self):
+    async def _check_and_reconnect(self):
         if self._client is None:
-            self._client = ModbusTcpClient(
+            self._client = AsyncModbusTcpClient(
                 host=self._host, port=self._port, timeout=self._timeout
             )
         if not self._client.connected:
             _LOGGER.info("Modbus client is not connected, trying to reconnect")
-            return self.connect()
+            return await self.connect()
 
         return self._client.connected
 
-    def connect(self):
+    async def connect(self):
         """Connect client."""
-        result = False
-        with self._lock:
-            result = self._client.connect()
+        async with self._lock:
+            result = await self._client.connect()
 
         if result:
             _LOGGER.info(
@@ -290,28 +285,28 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         """Return true if a battery is available."""
         return self.read_battery1 or self.read_battery2 or self.read_battery3
 
-    def read_holding_registers(self, unit, address, count):
+    async def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
-        with self._lock:
-            return self._client.read_holding_registers(
+        async with self._lock:
+            return await self._client.read_holding_registers(
                 address=address, count=count, slave=unit
             )
 
-    def write_registers(self, unit, address, payload):
+    async def write_registers(self, unit, address, payload):
         """Write registers."""
         try:
-            with self._lock:
-                return self._client.write_registers(
+            async with self._lock:
+                return await self._client.write_registers(
                     address=address, values=payload, slave=unit
                 )
         except ModbusException as err:
             raise HomeAssistantError(err) from err
 
-    def write_register(self, unit, address, payload):
+    async def write_register(self, unit, address, payload):
         """Write register."""
         try:
-            with self._lock:
-                return self._client.write_register(
+            async with self._lock:
+                return await self._client.write_register(
                     address=address, value=payload, slave=unit
                 )
         except ModbusException as err:
@@ -321,41 +316,41 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         """Calculate a value using scaling factor."""
         return round(value * 10**sf, max(0, -sf))
 
-    def read_modbus_data(self):
+    async def read_modbus_data(self):
         """Read all modbus data."""
         return (
-            self.read_modbus_data_inverter()
-            and self.read_modbus_power_limit()
-            and self.read_modbus_data_meter1()
-            and self.read_modbus_data_meter2()
-            and self.read_modbus_data_meter3()
-            and self.read_modbus_data_storage()
-            and self.read_modbus_data_battery1()
-            and self.read_modbus_data_battery2()
-            and self.read_modbus_data_battery3()
+            await self.read_modbus_data_inverter()
+            and await self.read_modbus_power_limit()
+            and await self.read_modbus_data_meter1()
+            and await self.read_modbus_data_meter2()
+            and await self.read_modbus_data_meter3()
+            and await self.read_modbus_data_storage()
+            and await self.read_modbus_data_battery1()
+            and await self.read_modbus_data_battery2()
+            and await self.read_modbus_data_battery3()
         )
 
-    def read_modbus_data_meter1(self):
+    async def read_modbus_data_meter1(self):
         """Read meter 1 modbus data."""
         if self.read_meter1:
-            return self.read_modbus_data_meter("m1_", 40190)
+            return await self.read_modbus_data_meter("m1_", 40190)
         return True
 
-    def read_modbus_data_meter2(self):
+    async def read_modbus_data_meter2(self):
         """Read meter 2 modbus data."""
         if self.read_meter2:
-            return self.read_modbus_data_meter("m2_", 40364)
+            return await self.read_modbus_data_meter("m2_", 40364)
         return True
 
-    def read_modbus_data_meter3(self):
+    async def read_modbus_data_meter3(self):
         """Read meter 3 modbus data."""
         if self.read_meter3:
-            return self.read_modbus_data_meter("m3_", 40539)
+            return await self.read_modbus_data_meter("m3_", 40539)
         return True
 
-    def read_modbus_data_meter(self, meter_prefix, start_address):
+    async def read_modbus_data_meter(self, meter_prefix, start_address):
         """Start reading meter  data."""
-        meter_data = self.read_holding_registers(
+        meter_data = await self.read_holding_registers(
             unit=self._address, address=start_address, count=103
         )
         if meter_data.isError():
@@ -589,9 +584,9 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
         return True
 
-    def read_modbus_data_inverter(self):
+    async def read_modbus_data_inverter(self):
         """Read inverter data."""
-        inverter_data = self.read_holding_registers(
+        inverter_data = await self.read_holding_registers(
             unit=self._address, address=40071, count=38
         )
         if inverter_data.isError():
@@ -712,13 +707,13 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
         return True
 
-    def read_modbus_power_limit(self):
+    async def read_modbus_power_limit(self):
         """Read the active power limit value (%)."""
 
         if not self.power_control_enabled:
             return True
 
-        inverter_data = self.read_holding_registers(
+        inverter_data = await self.read_holding_registers(
             unit=self._address, address=0xF001, count=1
         )
         if inverter_data.isError():
@@ -734,7 +729,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
         return True
 
-    def read_modbus_data_storage(self):
+    async def read_modbus_data_storage(self):
         """Read storage data."""
         if self.has_battery:
             count = 0x12  # Read storedge block as well
@@ -743,7 +738,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         else:
             return True  # Nothing to read here
 
-        storage_data = self.read_holding_registers(
+        storage_data = await self.read_holding_registers(
             unit=self._address, address=0xE000, count=count
         )
         if not storage_data.isError():
@@ -845,28 +840,28 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
         return True
 
-    def read_modbus_data_battery1(self):
+    async def read_modbus_data_battery1(self):
         """Read battery 1."""
         if self.read_battery1:
-            return self.read_modbus_data_battery("battery1_", 0xE100)
+            return await self.read_modbus_data_battery("battery1_", 0xE100)
         return True
 
-    def read_modbus_data_battery2(self):
+    async def read_modbus_data_battery2(self):
         """Read battery 2."""
         if self.read_battery2:
-            return self.read_modbus_data_battery("battery2_", 0xE200)
+            return await self.read_modbus_data_battery("battery2_", 0xE200)
         return True
 
-    def read_modbus_data_battery3(self):
+    async def read_modbus_data_battery3(self):
         """Read battery 3."""
         if self.read_battery3:
-            return self.read_modbus_data_battery("battery3_", 0xE400)
+            return await self.read_modbus_data_battery("battery3_", 0xE400)
         return True
 
-    def read_modbus_data_battery(self, battery_prefix, start_address):
+    async def read_modbus_data_battery(self, battery_prefix, start_address):
         """Read battery data."""
         if battery_prefix + "attrs" not in self.modbus_data:
-            battery_data = self.read_holding_registers(
+            battery_data = await self.read_holding_registers(
                 unit=self._address, address=start_address, count=0x4C
             )
             if not battery_data.isError():
@@ -922,7 +917,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
                 self.modbus_data[battery_prefix + "attrs"] = battery_info
 
-        storage_data = self.read_holding_registers(
+        storage_data = await self.read_holding_registers(
             unit=self._address, address=start_address + 0x6C, count=28
         )
         if storage_data.isError():
