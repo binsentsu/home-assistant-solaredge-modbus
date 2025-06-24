@@ -37,7 +37,6 @@ DEFAULT_READ_BATTERY2 = False
 DEFAULT_READ_BATTERY3 = False
 CONF_SOLAREDGE_HUB = "solaredge_hub"
 ATTR_STATUS_DESCRIPTION = "status_description"
-ATTR_MANUFACTURER = "Solaredge"
 CONF_MODBUS_ADDRESS = "modbus_address"
 CONF_POWER_CONTROL = "power_control"
 CONF_READ_METER1 = "read_meter_1"
