@@ -16,7 +16,7 @@ from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTER
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -24,7 +24,6 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import (
-    ATTR_MANUFACTURER,
     BATTERY_STATUSSES,
     CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
     CONF_MODBUS_ADDRESS,
@@ -100,27 +99,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     host = entry.data[CONF_HOST]
     name = entry.data[CONF_NAME]
     port = entry.data[CONF_PORT]
-    address = entry.data.get(CONF_MODBUS_ADDRESS, 1)
+    address = entry.data[CONF_MODBUS_ADDRESS]
     scan_interval = entry.data[CONF_SCAN_INTERVAL]
-    power_control = entry.data.get(CONF_POWER_CONTROL, False)
-    read_meter1 = entry.data.get(CONF_READ_METER1, False)
-    read_meter2 = entry.data.get(CONF_READ_METER2, False)
-    read_meter3 = entry.data.get(CONF_READ_METER3, False)
-    read_battery1 = entry.data.get(CONF_READ_BATTERY1, False)
-    read_battery2 = entry.data.get(CONF_READ_BATTERY2, False)
-    read_battery3 = entry.data.get(CONF_READ_BATTERY3, False)
-    max_export_control_site_limit = entry.data.get(
-        CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, False
-    )
+    power_control = entry.data[CONF_POWER_CONTROL]
+    read_meter1 = entry.data[CONF_READ_METER1]
+    read_meter2 = entry.data[CONF_READ_METER2]
+    read_meter3 = entry.data[CONF_READ_METER3]
+    read_battery1 = entry.data[CONF_READ_BATTERY1]
+    read_battery2 = entry.data[CONF_READ_BATTERY2]
+    read_battery3 = entry.data[CONF_READ_BATTERY3]
+    max_export_control_site_limit = entry.data[CONF_MAX_EXPORT_CONTROL_SITE_LIMIT]
 
     _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
-    hub = SolaredgeModbusHub(
+    hub = SolaredgeModbusHub(host, port, address, scan_interval)
+    coordinator = SolaredgeModbusCoordinator(
         hass,
+        entry,
+        hub,
         name,
-        host,
-        port,
-        address,
         scan_interval,
         power_control,
         read_meter1,
@@ -131,22 +128,94 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         read_battery3,
         max_export_control_site_limit,
     )
-    await hub.async_config_entry_first_refresh()
+    await coordinator.async_config_entry_first_refresh()
 
-    hass.data[DOMAIN][name] = {"hub": hub}
+    hass.data[DOMAIN][name] = {"hub": coordinator}
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry):
     """Unload Solaredge mobus entry."""
-    hub = hass.data[DOMAIN][entry.data["name"]]["hub"]
-    await hub.close()
+    coordinator = hass.data[DOMAIN][entry.data["name"]]["hub"]
+    await coordinator.hub.close()
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.data["name"])
 
     return unload_ok
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry, device_entry
+) -> bool:
+    """Remove a config entry from a device."""
+    return True
+
+
+async def async_migrate_entry(hass, config_entry):
+    _LOGGER.debug(
+        "Migrating configuration from version %s.%s",
+        config_entry.version,
+        config_entry.minor_version,
+    )
+
+    if config_entry.version > 2:
+        # This means the user has downgraded from a future version
+        return False
+
+    if config_entry.version == 1:
+        host = config_entry.data[CONF_HOST]
+        port = config_entry.data[CONF_PORT]
+        address = config_entry.data.get(CONF_MODBUS_ADDRESS, 1)
+        scan_interval = config_entry.data[CONF_SCAN_INTERVAL]
+
+        # Update unique id to use serial number
+        hub = SolaredgeModbusHub(host, port, address, scan_interval)
+        if not await hub.check_and_reconnect():
+            _LOGGER.error("Failed to connect to hub")
+            return False
+
+        if not await hub.read_device_info():
+            _LOGGER.error("Failed to read device info")
+            return False
+
+        new_unique_id = hub.device_info["serial_number"]
+        if existing_entity_id := hass.config_entries.async_entry_for_domain_unique_id(
+            config_entry.domain, new_unique_id
+        ):
+            _LOGGER.error(
+                "Cannot migrate to unique_id '%s', already exists for '%s', "
+                "You may have to delete unavailable solaredge modbus entities",
+                new_unique_id,
+                existing_entity_id,
+            )
+            return False
+
+        # Set config entry data which may not be present in older versions.
+        data = {**config_entry.data}
+        data[CONF_MODBUS_ADDRESS] = address
+        data[CONF_POWER_CONTROL] = config_entry.data.get(CONF_POWER_CONTROL, False)
+        data[CONF_READ_METER1] = config_entry.data.get(CONF_READ_METER1, False)
+        data[CONF_READ_METER2] = config_entry.data.get(CONF_READ_METER2, False)
+        data[CONF_READ_METER3] = config_entry.data.get(CONF_READ_METER3, False)
+        data[CONF_READ_BATTERY1] = config_entry.data.get(CONF_READ_BATTERY1, False)
+        data[CONF_READ_BATTERY2] = config_entry.data.get(CONF_READ_BATTERY2, False)
+        data[CONF_READ_BATTERY3] = config_entry.data.get(CONF_READ_BATTERY3, False)
+        data[CONF_MAX_EXPORT_CONTROL_SITE_LIMIT] = config_entry.data.get(
+            CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, False
+        )
+
+        if not hass.config_entries.async_update_entry(
+            config_entry, unique_id=new_unique_id, version=2
+        ):
+            _LOGGER.error("Failed to update config entry")
+            return False
+
+    _LOGGER.info("Migration to version %s successful", config_entry.version)
+
+    return True
 
 
 def validate(value, comparison, against):
@@ -164,68 +233,26 @@ def validate(value, comparison, against):
     return value
 
 
-class SolaredgeModbusHub(DataUpdateCoordinator):
+class SolaredgeModbusHub:
     """Thread safe wrapper class for pymodbus."""
 
     def __init__(
         self,
-        hass: HomeAssistant,
-        name,
         host,
         port,
         address,
         scan_interval,
-        power_control=False,
-        read_meter1=False,
-        read_meter2=False,
-        read_meter3=False,
-        read_battery1=False,
-        read_battery2=False,
-        read_battery3=False,
-        max_export_control_site_limit=False,
     ) -> None:
         """Initialize the Modbus hub."""
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=name,
-            update_interval=timedelta(seconds=scan_interval),
-        )
         self._client = None
         self._host = host
         self._port = port
         self._timeout = max(3, (scan_interval - 1))
         self._lock = asyncio.Lock()
         self._address = address
-        self.power_control = power_control
-        self.read_meter1 = read_meter1
-        self.read_meter2 = read_meter2
-        self.read_meter3 = read_meter3
-        self.read_battery1 = read_battery1
-        self.read_battery2 = read_battery2
-        self.read_battery3 = read_battery3
-        self.max_export_control_site_limit = max_export_control_site_limit
+
         self.modbus_data = {}
-
-    async def _update(self) -> dict:
-        """Update."""
-        if not await self._check_and_reconnect():
-            # if not connected, skip
-            return self.modbus_data
-
-        try:
-            await self.read_modbus_data()
-            return self.modbus_data
-        except Exception as error:
-            await self.close()
-            raise UpdateFailed(error) from error
-
-    async def _async_update_data(self) -> dict:
-        """Time to update."""
-        try:
-            return await self._update()
-        except Exception as exc:
-            raise UpdateFailed(f"Error updating modbus data: {exc}") from exc
+        self.device_info = {}
 
     def get_unit(self) -> int:
         """Get the configured unit."""
@@ -240,7 +267,7 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
             self._client.close()
             self._client = None
 
-    async def _check_and_reconnect(self):
+    async def check_and_reconnect(self):
         if self._client is None:
             self._client = AsyncModbusTcpClient(
                 host=self._host, port=self._port, timeout=self._timeout
@@ -269,21 +296,6 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
                 self._client.comm_params.port,
             )
         return result
-
-    @property
-    def power_control_enabled(self):
-        """Return true if power control has been enabled."""
-        return self.power_control
-
-    @property
-    def has_meter(self):
-        """Return true if a meter is available."""
-        return self.read_meter1 or self.read_meter2 or self.read_meter3
-
-    @property
-    def has_battery(self):
-        """Return true if a battery is available."""
-        return self.read_battery1 or self.read_battery2 or self.read_battery3
 
     async def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
@@ -316,37 +328,43 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         """Calculate a value using scaling factor."""
         return round(value * 10**sf, max(0, -sf))
 
-    async def read_modbus_data(self):
-        """Read all modbus data."""
-        return (
-            await self.read_modbus_data_inverter()
-            and await self.read_modbus_power_limit()
-            and await self.read_modbus_data_meter1()
-            and await self.read_modbus_data_meter2()
-            and await self.read_modbus_data_meter3()
-            and await self.read_modbus_data_storage()
-            and await self.read_modbus_data_battery1()
-            and await self.read_modbus_data_battery2()
-            and await self.read_modbus_data_battery3()
+    async def read_device_info(self):
+        data = await self.read_holding_registers(
+            unit=self._address, address=40004, count=64
         )
+        if data.isError():
+            return False
+
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            data.registers, byteorder=Endian.BIG
+        )
+
+        manufacturer = decoder.decode_string(size=32)
+        model = decoder.decode_string(size=32)
+        decoder.skip_bytes(16)
+        version = decoder.decode_string(size=16)
+        serial_number = decoder.decode_string(size=32)
+
+        self.device_info = {
+            "manufacturer": manufacturer,
+            "model": model,
+            "version": version,
+            "serial_number": serial_number,
+        }
+
+        return True
 
     async def read_modbus_data_meter1(self):
         """Read meter 1 modbus data."""
-        if self.read_meter1:
-            return await self.read_modbus_data_meter("m1_", 40190)
-        return True
+        return await self.read_modbus_data_meter("m1_", 40190)
 
     async def read_modbus_data_meter2(self):
         """Read meter 2 modbus data."""
-        if self.read_meter2:
-            return await self.read_modbus_data_meter("m2_", 40364)
-        return True
+        return await self.read_modbus_data_meter("m2_", 40364)
 
     async def read_modbus_data_meter3(self):
         """Read meter 3 modbus data."""
-        if self.read_meter3:
-            return await self.read_modbus_data_meter("m3_", 40539)
-        return True
+        return await self.read_modbus_data_meter("m3_", 40539)
 
     async def read_modbus_data_meter(self, meter_prefix, start_address):
         """Start reading meter  data."""
@@ -710,9 +728,6 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
     async def read_modbus_power_limit(self):
         """Read the active power limit value (%)."""
 
-        if not self.power_control_enabled:
-            return True
-
         inverter_data = await self.read_holding_registers(
             unit=self._address, address=0xF001, count=1
         )
@@ -729,11 +744,11 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
         return True
 
-    async def read_modbus_data_storage(self):
+    async def read_modbus_data_storage(self, has_battery, has_meter):
         """Read storage data."""
-        if self.has_battery:
+        if has_battery:
             count = 0x12  # Read storage block as well
-        elif self.has_meter:
+        elif has_meter:
             count = 4  # Just read export control block
         else:
             return True  # Nothing to read here
@@ -842,21 +857,15 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
 
     async def read_modbus_data_battery1(self):
         """Read battery 1."""
-        if self.read_battery1:
-            return await self.read_modbus_data_battery("battery1_", 0xE100)
-        return True
+        return await self.read_modbus_data_battery("battery1_", 0xE100)
 
     async def read_modbus_data_battery2(self):
         """Read battery 2."""
-        if self.read_battery2:
-            return await self.read_modbus_data_battery("battery2_", 0xE200)
-        return True
+        return await self.read_modbus_data_battery("battery2_", 0xE200)
 
     async def read_modbus_data_battery3(self):
         """Read battery 3."""
-        if self.read_battery3:
-            return await self.read_modbus_data_battery("battery3_", 0xE400)
-        return True
+        return await self.read_modbus_data_battery("battery3_", 0xE400)
 
     async def read_modbus_data_battery(self, battery_prefix, start_address):
         """Read battery data."""
@@ -871,24 +880,18 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
                     wordorder=Endian.LITTLE,
                 )
 
-                def decode_string(decoder):
-                    s = decoder.decode_string(32)  # get 32 char string
-                    s = s.partition(b"\0")[0]  # omit NULL terminators
-                    s = s.decode("utf-8")  # decode UTF-8
-                    return str(s)
-
                 battery_info = {}
                 # 0x00 - 16 - manufacturer
-                battery_info["manufacturer"] = decode_string(decoder)
+                battery_info["manufacturer"] = decoder.decode_string(32)
 
                 # 0x10 - 16 - model
-                battery_info["model"] = decode_string(decoder)
+                battery_info["model"] = decoder.decode_string(32)
 
                 # 0x20 - 16 - firmware version
-                battery_info["firmware_version"] = decode_string(decoder)
+                battery_info["firmware_version"] = decoder.decode_string(32)
 
                 # 0x30 - 16 - serial number
-                battery_info["serial_number"] = decode_string(decoder)
+                battery_info["serial_number"] = decoder.decode_string(32)
 
                 # 0x40 - 1 - device ID
                 battery_info["device_id"] = decoder.decode_16bit_uint()
@@ -986,15 +989,116 @@ class SolaredgeModbusHub(DataUpdateCoordinator):
         return True
 
 
+class SolaredgeModbusCoordinator(DataUpdateCoordinator):
+    """Thread safe wrapper class for pymodbus."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        hub: SolaredgeModbusHub,
+        name,
+        scan_interval,
+        power_control=False,
+        read_meter1=False,
+        read_meter2=False,
+        read_meter3=False,
+        read_battery1=False,
+        read_battery2=False,
+        read_battery3=False,
+        max_export_control_site_limit=False,
+    ) -> None:
+        """Initialize the Modbus hub."""
+        super().__init__(
+            hass,
+            _LOGGER,
+            config_entry=entry,
+            name=name,
+            update_interval=timedelta(seconds=scan_interval),
+        )
+        self.hub = hub
+        self.power_control_enabled = power_control
+        self.read_meter1 = read_meter1
+        self.read_meter2 = read_meter2
+        self.read_meter3 = read_meter3
+        self.read_battery1 = read_battery1
+        self.read_battery2 = read_battery2
+        self.read_battery3 = read_battery3
+        self.max_export_control_site_limit = max_export_control_site_limit
+
+    @property
+    def modbus_data(self):
+        return self.hub.modbus_data
+
+    @property
+    def device_info(self):
+        return self.hub.device_info
+
+    async def _async_setup(self):
+        """Initialize device information."""
+        if not await self.hub.check_and_reconnect():
+            raise UpdateFailed("Unable to connect")
+        if not await self.hub.read_device_info():
+            raise UpdateFailed("Unable to read serial number")
+
+    async def _async_update_data(self) -> dict:
+        """Time to update."""
+        if not await self.hub.check_and_reconnect():
+            raise UpdateFailed("Unable to connect")
+
+        try:
+            update_succeeded = await self.read_modbus_data()
+        except Exception as error:
+            await self.close()
+            raise UpdateFailed(error) from error
+
+        if not update_succeeded:
+            raise UpdateFailed("Modbus update failed")
+
+        return self.modbus_data
+
+    async def read_modbus_data(self):
+        """Read all modbus data."""
+        return (
+            await self.hub.read_modbus_data_inverter()
+            and (
+                not self.power_control_enabled
+                or await self.hub.read_modbus_power_limit()
+            )
+            and (not self.read_meter1 or await self.hub.read_modbus_data_meter1())
+            and (not self.read_meter2 or await self.hub.read_modbus_data_meter2())
+            and (not self.read_meter2 or await self.hub.read_modbus_data_meter3())
+            and await self.hub.read_modbus_data_storage(
+                self.has_battery, self.has_meter
+            )
+            and (not self.read_battery1 or await self.hub.read_modbus_data_battery1())
+            and (not self.read_battery2 or await self.hub.read_modbus_data_battery2())
+            and (not self.read_battery3 or await self.hub.read_modbus_data_battery3())
+        )
+
+    @property
+    def has_meter(self):
+        """Return true if a meter is available."""
+        return self.read_meter1 or self.read_meter2 or self.read_meter3
+
+    @property
+    def has_battery(self):
+        """Return true if a battery is available."""
+        return self.read_battery1 or self.read_battery2 or self.read_battery3
+
+
 class SolarEdgeEntity(CoordinatorEntity):
     """Representation of a solaredge entity."""
 
-    def __init__(self, hub: SolaredgeModbusHub) -> None:
+    def __init__(self, hub: SolaredgeModbusCoordinator) -> None:
         """Init SolarEdgeEntity."""
         super().__init__(hub)
         self.hub = hub
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, hub.name)},
-            manufacturer=ATTR_MANUFACTURER,
             name=hub.name,
+            identifiers={(DOMAIN, hub.device_info["serial_number"])},
+            manufacturer=hub.device_info["manufacturer"],
+            model=hub.device_info["model"],
+            serial_number=hub.device_info["serial_number"],
+            sw_version=hub.device_info["version"],
         )
