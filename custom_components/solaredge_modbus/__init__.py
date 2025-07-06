@@ -786,7 +786,7 @@ class SolaredgeModbusHub:
                 decoder.decode_32bit_float(), 3
             )
 
-            if not self.has_battery:
+            if not has_battery:
                 # Done with the export control block
                 return True
 
@@ -802,9 +802,9 @@ class SolaredgeModbusHub:
             # 0xE005 - 1 - storage ac charge policy
             storage_ac_charge_policy = decoder.decode_16bit_uint()
             if storage_ac_charge_policy in STORAGE_AC_CHARGE_POLICY:
-                self.modbus_data["storage_ac_charge_policy"] = (
-                    STORAGE_AC_CHARGE_POLICY[storage_ac_charge_policy]
-                )
+                self.modbus_data["storage_ac_charge_policy"] = STORAGE_AC_CHARGE_POLICY[
+                    storage_ac_charge_policy
+                ]
             else:
                 self.modbus_data["storage_ac_charge_policy"] = storage_ac_charge_policy
 
