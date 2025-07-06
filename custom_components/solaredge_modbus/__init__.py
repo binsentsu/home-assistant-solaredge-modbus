@@ -208,7 +208,7 @@ async def async_migrate_entry(hass, config_entry):
         )
 
         if not hass.config_entries.async_update_entry(
-            config_entry, unique_id=new_unique_id, version=2
+            config_entry, unique_id=new_unique_id, data=data, version=2
         ):
             _LOGGER.error("Failed to update config entry")
             return False
