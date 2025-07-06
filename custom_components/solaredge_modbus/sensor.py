@@ -10,7 +10,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 
-from . import SolarEdgeEntity, SolaredgeModbusHub
+from . import SolarEdgeEntity, SolaredgeModbusCoordinator
 from .const import (
     ATTR_STATUS_DESCRIPTION,
     BATTERIES,
@@ -71,7 +71,7 @@ class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
     """Representation of a solaredge sensor."""
 
     def __init__(
-        self, hub: SolaredgeModbusHub, description: SensorEntityDescription
+        self, hub: SolaredgeModbusCoordinator, description: SensorEntityDescription
     ) -> None:
         """Init the sensor."""
         super().__init__(hub)
@@ -82,7 +82,7 @@ class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        new_value = self.hub.data.get(self.entity_description.key)
+        new_value = self.hub.modbus_data.get(self.entity_description.key)
         """We keep old value when we would get a new value of 0 for a total increasing sensor."""
         if (
             (self.entity_description.state_class != SensorStateClass.TOTAL_INCREASING)
@@ -107,16 +107,16 @@ class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
             }
         elif (
             "battery1" in self.entity_description.key
-            and "battery1_attrs" in self.hub.data
+            and "battery1_attrs" in self.hub.modbus_data
         ):
-            self._attr_extra_state_attributes = self.hub.data["battery1_attrs"]
+            self._attr_extra_state_attributes = self.hub.modbus_data["battery1_attrs"]
         elif (
             "battery2" in self.entity_description.key
-            and "battery2_attrs" in self.hub.data
+            and "battery2_attrs" in self.hub.modbus_data
         ):
-            self._attr_extra_state_attributes = self.hub.data["battery2_attrs"]
+            self._attr_extra_state_attributes = self.hub.modbus_data["battery2_attrs"]
         elif (
             "battery3" in self.entity_description.key
-            and "battery3_attrs" in self.hub.data
+            and "battery3_attrs" in self.hub.modbus_data
         ):
-            self._attr_extra_state_attributes = self.hub.data["battery3_attrs"]
+            self._attr_extra_state_attributes = self.hub.modbus_data["battery3_attrs"]

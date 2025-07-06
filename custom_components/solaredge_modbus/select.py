@@ -6,7 +6,7 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 
-from . import SolarEdgeEntity, SolaredgeModbusHub
+from . import SolarEdgeEntity, SolaredgeModbusCoordinator
 from .const import (
     DOMAIN,
     EXPORT_CONTROL_SELECT_TYPES,
@@ -51,7 +51,7 @@ class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
 
     def __init__(
         self,
-        hub: SolaredgeModbusHub,
+        hub: SolaredgeModbusCoordinator,
         description: SolarEdgeSelectDescription,
     ) -> None:
         """Init the select entity."""
@@ -66,8 +66,8 @@ class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
     @property
     def current_option(self) -> str:
         """Get current option."""
-        if self.entity_description.key in self.hub.data:
-            return self.hub.data[self.entity_description.key]
+        if self.entity_description.key in self.hub.modbus_data:
+            return self.hub.modbus_data[self.entity_description.key]
         return None
 
     @callback
@@ -78,9 +78,9 @@ class SolarEdgeSelect(SelectEntity, SolarEdgeEntity):
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         new_mode = get_key(self._option_dict, option)
-        self.hub.write_register(
-            unit=self.hub.get_unit(), address=self._register, payload=new_mode
+        await self.hub.hub.write_register(
+            unit=self.hub.hub.get_unit(), address=self._register, payload=new_mode
         )
 
-        self.hub.data[self.entity_description.key] = option
+        self.hub.modbus_data[self.entity_description.key] = option
         self.async_write_ha_state()

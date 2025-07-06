@@ -9,7 +9,7 @@ from homeassistant.components.number import NumberEntity
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 
-from . import SolarEdgeEntity, SolaredgeModbusHub
+from . import SolarEdgeEntity, SolaredgeModbusCoordinator
 from .const import (
     ACTIVE_POWER_LIMIT_TYPES,
     DOMAIN,
@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> None:
     """Execute the setup of number entities."""
     hub_name = entry.data[CONF_NAME]
-    hub: SolaredgeModbusHub = hass.data[DOMAIN][hub_name]["hub"]
+    hub: SolaredgeModbusCoordinator = hass.data[DOMAIN][hub_name]["hub"]
 
     entities = []
 
@@ -51,7 +51,7 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
     """Solaredge Number Entity."""
 
     def __init__(
-        self, hub: SolaredgeModbusHub, description: SolarEdgeNumberDescription
+        self, hub: SolaredgeModbusCoordinator, description: SolarEdgeNumberDescription
     ) -> None:
         """Init."""
         super().__init__(hub)
@@ -74,8 +74,8 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
     @property
     def native_value(self) -> float:
         """Get native value."""
-        if self.entity_description.key in self.hub.data:
-            return self.hub.data[self.entity_description.key]
+        if self.entity_description.key in self.hub.modbus_data:
+            return self.hub.modbus_data[self.entity_description.key]
         return None
 
     async def async_set_native_value(self, value: float) -> None:
@@ -96,8 +96,8 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
             )
             return
 
-        response = self.hub.write_registers(
-            unit=self.hub.get_unit(),
+        response = await self.hub.hub.write_registers(
+            unit=self.hub.hub.get_unit(),
             address=self._register,
             payload=builder.to_registers(),
         )
@@ -107,5 +107,5 @@ class SolarEdgeNumber(SolarEdgeEntity, NumberEntity):
             )
             return
 
-        self.hub.data[self.entity_description.key] = value
+        self.hub.modbus_data[self.entity_description.key] = value
         self.async_write_ha_state()
