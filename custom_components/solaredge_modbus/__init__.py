@@ -139,7 +139,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry):
     """Unload Solaredge mobus entry."""
-    coordinator = hass.data[DOMAIN][entry.data["name"]]["hub"]
+    coordinator: SolaredgeModbusCoordinator = hass.data[DOMAIN][entry.data["name"]][
+        "hub"
+    ]
     await coordinator.hub.close()
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.data["name"])
@@ -1049,7 +1051,7 @@ class SolaredgeModbusCoordinator(DataUpdateCoordinator):
         try:
             update_succeeded = await self.read_modbus_data()
         except Exception as error:
-            await self.close()
+            await self.hub.close()
             raise UpdateFailed(error) from error
 
         if not update_succeeded:
