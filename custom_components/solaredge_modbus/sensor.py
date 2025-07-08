@@ -89,10 +89,32 @@ class SolarEdgeSensor(SolarEdgeEntity, SensorEntity):
             or (new_value is None)
             or (new_value > 0)
         ):
-            self._attr_native_value = new_value
-
+            # Add protection against values that are too large
+            if isinstance(new_value, int) and abs(new_value) > 1e307:  # Close to float max
+                _LOGGER.warning(
+                    "Value for %s is too large (%s), setting to None",
+                    self.entity_description.key,
+                    new_value
+                )
+                self._attr_native_value = None
+            else:
+                self._attr_native_value = new_value
+        
         self._async_update_attrs()
-        super()._handle_coordinator_update()
+        
+        try:
+            super()._handle_coordinator_update()
+        except OverflowError as err:
+            _LOGGER.error(
+                "Overflow error for %s with value %s: %s",
+                self.entity_description.key,
+                self._attr_native_value,
+                err
+            )
+            # Set to None to prevent future errors
+            self._attr_native_value = None
+            # Still need to update the state
+            self.async_write_ha_state()
 
     @callback
     def _async_update_attrs(self) -> None:
