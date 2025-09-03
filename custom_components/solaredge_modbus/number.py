@@ -2,9 +2,6 @@
 
 import logging
 
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadBuilder
-
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
@@ -17,6 +14,7 @@ from .const import (
     STORAGE_NUMBER_TYPES,
     SolarEdgeNumberDescription,
 )
+from .payload import BinaryPayloadBuilder, Endian
 
 _LOGGER = logging.getLogger(__name__)
 

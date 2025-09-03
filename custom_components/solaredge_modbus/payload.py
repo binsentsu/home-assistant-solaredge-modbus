@@ -14,12 +14,37 @@ __all__ = [
 # pylint: disable=missing-type-doc
 from struct import pack, unpack
 
-from pymodbus.constants import Endian
+import enum
 from pymodbus.exceptions import ParameterException
 from pymodbus.logging import Log
 from pymodbus.pdu.pdu import pack_bitstring, unpack_bitstring
 
 WC = {"b": 1, "h": 2, "e": 2, "i": 4, "l": 4, "q": 8, "f": 4, "d": 8}
+
+
+class Endian(str, enum.Enum):
+    """An enumeration representing the various byte endianness.
+
+    .. attribute:: AUTO
+
+       This indicates that the byte order is chosen by the
+       current native environment.
+
+    .. attribute:: BIG
+
+       This indicates that the bytes are in big endian format
+
+    .. attribute:: LITTLE
+
+       This indicates that the bytes are in little endian format
+
+    .. note:: I am simply borrowing the format strings from the
+       python struct module for my convenience.
+    """
+
+    AUTO = "@"
+    BIG = ">"
+    LITTLE = "<"
 
 
 class BinaryPayloadBuilder:
