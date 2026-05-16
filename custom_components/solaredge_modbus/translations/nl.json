@@ -8,7 +8,25 @@
           "host": "Het ip-adres van uw Solaredge-omvormer",
           "name": "Het voorvoegsel dat moet worden gebruikt voor uw SolarEdge-sensoren",
           "port": "De TCP-poort waarop verbinding moet worden gemaakt met de SolarEdge-omvormer",
-		      "modbus_address": "Modbus adres",
+          "modbus_address": "Modbus adres",
+          "power_control": "Activeer het instellen van de limiet voor het actieve vermogen",
+          "read_meter_1": "Lees meter 1 data (enkel voor voor meter modellen)",
+          "read_meter_2": "Lees meter 2 data (enkel voor voor meter modellen)",
+          "read_meter_3": "Lees meter 3 data (enkel voor voor meter modellen)",
+          "read_battery_1": "Lees accu 1 data (alleen indien uitgerust)",
+          "read_battery_2": "Lees accu 2 data (alleen indien uitgerust)",
+          "read_battery_3": "Lees accu 3 data (alleen indien uitgerust)",
+          "scan_interval": "Het modbus registers ververs-interval [s]",
+          "max_export_control_site_limit": "De maximale locatielimiet voor exportcontrole [W]"
+        }
+      },
+      "reconfigure": {
+        "title": "Herconfigureer uw SolarEdge modbus-verbinding",
+        "data": {
+          "host": "Het ip-adres van uw Solaredge-omvormer",
+          "name": "Het voorvoegsel dat moet worden gebruikt voor uw SolarEdge-sensoren",
+          "port": "De TCP-poort waarop verbinding moet worden gemaakt met de SolarEdge-omvormer",
+          "modbus_address": "Modbus adres",
           "power_control": "Activeer het instellen van de limiet voor het actieve vermogen",
           "read_meter_1": "Lees meter 1 data (enkel voor voor meter modellen)",
           "read_meter_2": "Lees meter 2 data (enkel voor voor meter modellen)",
@@ -25,7 +43,8 @@
       "already_configured": "Apparaat is al geconfigureerd"
     },
     "abort": {
-      "already_configured": "Apparaat is al geconfigureerd"
+      "already_configured": "Apparaat is al geconfigureerd",
+      "reconfigure_successful": "Configuratie succesvol bijgewerkt."
     }
   }
 }
