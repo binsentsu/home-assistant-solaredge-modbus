@@ -107,3 +107,64 @@ class SolaredgeModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", data_schema=DATA_SCHEMA, errors=errors
         )
+
+    async def async_step_reconfigure(self, user_input=None):
+        """Handle reconfiguration of an existing entry.
+
+        Allows the user to change host, port, meter/battery settings,
+        scan interval and all other options without removing and
+        re-adding the integration.
+        """
+        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        current = entry.data
+
+        errors = {}
+
+        if user_input is not None:
+            host = user_input[CONF_HOST]
+
+            # Allow same host (current entry) — only block a *different* host
+            # that is already used by another entry
+            other_hosts = {
+                e.data[CONF_HOST]
+                for e in self.hass.config_entries.async_entries(DOMAIN)
+                if e.entry_id != entry.entry_id
+            }
+            if host in other_hosts:
+                errors[CONF_HOST] = "already_configured"
+            elif not host_valid(host):
+                errors[CONF_HOST] = "invalid host IP"
+            else:
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data=user_input,
+                    reason="reconfigure_successful",
+                )
+
+        # Pre-fill the form with the current configuration
+        reconfigure_schema = vol.Schema(
+            {
+                vol.Optional(CONF_NAME, default=current.get(CONF_NAME, DEFAULT_NAME)): str,
+                vol.Required(CONF_HOST, default=current.get(CONF_HOST, "")): str,
+                vol.Required(CONF_PORT, default=current.get(CONF_PORT, DEFAULT_PORT)): int,
+                vol.Optional(CONF_MODBUS_ADDRESS, default=current.get(CONF_MODBUS_ADDRESS, DEFAULT_MODBUS_ADDRESS)): int,
+                vol.Optional(CONF_POWER_CONTROL, default=current.get(CONF_POWER_CONTROL, DEFAULT_POWER_CONTROL)): bool,
+                vol.Optional(CONF_READ_METER1, default=current.get(CONF_READ_METER1, DEFAULT_READ_METER1)): bool,
+                vol.Optional(CONF_READ_METER2, default=current.get(CONF_READ_METER2, DEFAULT_READ_METER2)): bool,
+                vol.Optional(CONF_READ_METER3, default=current.get(CONF_READ_METER3, DEFAULT_READ_METER3)): bool,
+                vol.Optional(CONF_READ_BATTERY1, default=current.get(CONF_READ_BATTERY1, DEFAULT_READ_BATTERY1)): bool,
+                vol.Optional(CONF_READ_BATTERY2, default=current.get(CONF_READ_BATTERY2, DEFAULT_READ_BATTERY2)): bool,
+                vol.Optional(CONF_READ_BATTERY3, default=current.get(CONF_READ_BATTERY3, DEFAULT_READ_BATTERY3)): bool,
+                vol.Optional(CONF_SCAN_INTERVAL, default=current.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)): int,
+                vol.Optional(
+                    CONF_MAX_EXPORT_CONTROL_SITE_LIMIT,
+                    default=current.get(CONF_MAX_EXPORT_CONTROL_SITE_LIMIT, DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT),
+                ): int,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=reconfigure_schema,
+            errors=errors,
+        )
