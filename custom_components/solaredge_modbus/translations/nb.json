@@ -8,7 +8,25 @@
           "host": "IP-adressen til din Solaredge-omformer",
           "name": "Prefikset som skal brukes til SolarEdge-sensorene dine",
           "port": "TCP-porten som skal kobles til SolarEdge-omformeren",
-		      "modbus_address": "Modbus adresse",
+          "modbus_address": "Modbus adresse",
+          "power_control": "Aktiver innstilling av aktiv effektgrense",
+          "read_meter_1": "Les måler 1-data (bare for målermodeller)",
+          "read_meter_2": "Les måler 2-data (bare for målermodeller)",
+          "read_meter_3": "Les måler 3-data (bare for målermodeller)",
+          "read_battery_1": "Les batteri 1 data (bare når den er utstyrt)",
+          "read_battery_2": "Les batteri 2 data (bare når den er utstyrt)",
+          "read_battery_3": "Les batteri 3 data (bare når den er utstyrt)",
+          "scan_interval": "Modbussen registrerer pollingintervall [s]",
+          "max_export_control_site_limit": "Den maksimale grensen for eksportkontrollnettsted [W]"
+        }
+      },
+      "reconfigure": {
+        "title": "Rekonfigurer din SolarEdge modbus-tilkobling",
+        "data": {
+          "host": "IP-adressen til din Solaredge-omformer",
+          "name": "Prefikset som skal brukes til SolarEdge-sensorene dine",
+          "port": "TCP-porten som skal kobles til SolarEdge-omformeren",
+          "modbus_address": "Modbus adresse",
           "power_control": "Aktiver innstilling av aktiv effektgrense",
           "read_meter_1": "Les måler 1-data (bare for målermodeller)",
           "read_meter_2": "Les måler 2-data (bare for målermodeller)",
@@ -25,7 +43,8 @@
       "already_configured": "Enheten er allerede konfigurert"
     },
     "abort": {
-      "already_configured": "Enheten er allerede konfigurert"
+      "already_configured": "Enheten er allerede konfigurert",
+      "reconfigure_successful": "Konfigurasjonen ble oppdatert."
     }
   }
 }
