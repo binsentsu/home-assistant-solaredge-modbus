@@ -19,13 +19,32 @@
           "scan_interval": "The modbus registers polling interval [s]",
           "max_export_control_site_limit": "The maximum export-control site-limit [W]"
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure your SolarEdge modbus connection",
+        "data": {
+          "host": "The ip-address of your Solaredge device",
+          "name": "The prefix to be used for your SolarEdge sensors",
+          "port": "The TCP port on which to connect to the SolarEdge",
+          "modbus_address": "The modbus address",
+          "power_control": "Enable setting active power limit",
+          "read_meter_1": "Read meter 1 data (only for meter models)",
+          "read_meter_2": "Read meter 2 data (only for meter models)",
+          "read_meter_3": "Read meter 3 data (only for meter models)",
+          "read_battery_1": "Read battery 1 data (only when equipped)",
+          "read_battery_2": "Read battery 2 data (only when equipped)",
+          "read_battery_3": "Read battery 3 data (only when equipped)",
+          "scan_interval": "The modbus registers polling interval [s]",
+          "max_export_control_site_limit": "The maximum export-control site-limit [W]"
+        }
       }
     },
     "error": {
       "already_configured": "Device is already configured"
     },
     "abort": {
-      "already_configured": "Device is already configured"
+      "already_configured": "Device is already configured",
+      "reconfigure_successful": "Configuration updated successfully."
     }
   }
 }
