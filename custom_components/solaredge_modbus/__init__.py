@@ -1068,7 +1068,7 @@ class SolaredgeModbusCoordinator(DataUpdateCoordinator):
             )
             and (not self.read_meter1 or await self.hub.read_modbus_data_meter1())
             and (not self.read_meter2 or await self.hub.read_modbus_data_meter2())
-            and (not self.read_meter2 or await self.hub.read_modbus_data_meter3())
+            and (not self.read_meter3 or await self.hub.read_modbus_data_meter3())
             and await self.hub.read_modbus_data_storage(
                 self.has_battery, self.has_meter
             )
