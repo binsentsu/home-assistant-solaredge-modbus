@@ -13,6 +13,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     ATTR_SECONDS,
     PERCENTAGE,
+    EntityCategory,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
@@ -190,16 +191,19 @@ INVERTER_SENSORS.extend(
             device_class=SensorDeviceClass.TEMPERATURE,
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             state_class=SensorStateClass.MEASUREMENT,
+            entity_category=EntityCategory.DIAGNOSTIC,
         ),
         SensorEntityDescription(
             key="status",
             name="Status",
             state_class=SensorStateClass.MEASUREMENT,
+            entity_category=EntityCategory.DIAGNOSTIC,
         ),
         SensorEntityDescription(
             key="statusvendor",
             name="Status Vendor",
             state_class=SensorStateClass.MEASUREMENT,
+            entity_category=EntityCategory.DIAGNOSTIC,
         ),
     ]
 )
@@ -443,6 +447,7 @@ for key, value in BATTERY_TEMP_TYPES.items():
                 device_class=SensorDeviceClass.TEMPERATURE,
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 state_class=SensorStateClass.MEASUREMENT,
+                entity_category=EntityCategory.DIAGNOSTIC,
             )
         )
 
@@ -455,6 +460,7 @@ for key, value in BATTERY_VOLT_TYPES.items():
                 device_class=SensorDeviceClass.VOLTAGE,
                 native_unit_of_measurement=UnitOfElectricPotential.VOLT,
                 state_class=SensorStateClass.MEASUREMENT,
+                entity_category=EntityCategory.DIAGNOSTIC,
             )
         )
 
@@ -467,6 +473,7 @@ for key, value in BATTERY_CURRENT_TYPES.items():
                 device_class=SensorDeviceClass.CURRENT,
                 native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
                 state_class=SensorStateClass.MEASUREMENT,
+                entity_category=EntityCategory.DIAGNOSTIC,
             )
         )
 
@@ -503,6 +510,7 @@ for key, value in BATTERY_ENERGY_WH_TYPES.items():
                 device_class=SensorDeviceClass.ENERGY_STORAGE,
                 native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
                 state_class=SensorStateClass.MEASUREMENT,
+                entity_category=EntityCategory.DIAGNOSTIC,
             )
         )
 
@@ -515,13 +523,18 @@ for key, value in BATTERY_PERCENT_TYPES.items():
                 device_class=SensorDeviceClass.BATTERY,
                 native_unit_of_measurement=PERCENTAGE,
                 state_class=SensorStateClass.MEASUREMENT,
+                entity_category=(
+                    EntityCategory.DIAGNOSTIC if key == "state_of_health" else None
+                ),
             )
         )
 
 for batteryKey, batteryList in BATTERIES.items():
     batteryList.append(
         SensorEntityDescription(
-            key=batteryKey + "_status", name=batteryKey.capitalize() + " Status"
+            key=batteryKey + "_status",
+            name=batteryKey.capitalize() + " Status",
+            entity_category=EntityCategory.DIAGNOSTIC,
         )
     )
 
@@ -581,6 +594,7 @@ ACTIVE_POWER_LIMIT_TYPES.append(
         fmt="u16",
         attrs={"min": 0, "max": 100},
         native_unit_of_measurement=PERCENTAGE,
+        entity_category=EntityCategory.CONFIG,
     )
 )
 
@@ -594,12 +608,14 @@ EXPORT_CONTROL_SELECT_TYPES.extend(
             name="Export control mode",
             register=0xE000,
             options_dict=EXPORT_CONTROL_MODE,
+            entity_category=EntityCategory.CONFIG,
         ),
         SolarEdgeSelectDescription(
             key="export_control_limit_mode",
             name="Export control limit mode",
             register=0xE001,
             options_dict=EXPORT_CONTROL_LIMIT_MODE,
+            entity_category=EntityCategory.CONFIG,
         ),
     ]
 )
@@ -613,6 +629,7 @@ EXPORT_CONTROL_NUMBER_TYPES.append(
         fmt="f",
         attrs={"min": 0, "max": DEFAULT_MAX_EXPORT_CONTROL_SITE_LIMIT},
         native_unit_of_measurement=UnitOfPower.WATT,
+        entity_category=EntityCategory.CONFIG,
     )
 )
 
@@ -625,24 +642,28 @@ STORAGE_SELECT_TYPES.extend(
             name="Storage Control Mode",
             register=0xE004,
             options_dict=STORAGE_CONTROL_MODE,
+            entity_category=EntityCategory.CONFIG,
         ),
         SolarEdgeSelectDescription(
             key="storage_ac_charge_policy",
             name="Storage AC Charge Policy",
             register=0xE005,
             options_dict=STORAGE_AC_CHARGE_POLICY,
+            entity_category=EntityCategory.CONFIG,
         ),
         SolarEdgeSelectDescription(
             key="storage_default_mode",
             name="Storage Default Mode",
             register=0xE00A,
             options_dict=STORAGE_CHARGE_DISCHARGE_MODE,
+            entity_category=EntityCategory.CONFIG,
         ),
         SolarEdgeSelectDescription(
             key="storage_remote_command_mode",
             name="Storage Remote Command Mode",
             register=0xE00D,
             options_dict=STORAGE_CHARGE_DISCHARGE_MODE,
+            entity_category=EntityCategory.CONFIG,
         ),
     ]
 )
@@ -658,6 +679,7 @@ STORAGE_NUMBER_TYPES.extend(
             register=0xE006,
             fmt="f",
             attrs={"min": 0, "max": 100000000000},
+            entity_category=EntityCategory.CONFIG,
         ),
         SolarEdgeNumberDescription(
             name="Storage Backup reserved",
@@ -666,6 +688,7 @@ STORAGE_NUMBER_TYPES.extend(
             fmt="f",
             attrs={"min": 0, "max": 100},
             native_unit_of_measurement=PERCENTAGE,
+            entity_category=EntityCategory.CONFIG,
         ),
         SolarEdgeNumberDescription(
             name="Storage Remote Command Timeout",
@@ -674,6 +697,7 @@ STORAGE_NUMBER_TYPES.extend(
             fmt="u32",
             attrs={"min": 0, "max": 86400},
             native_unit_of_measurement=ATTR_SECONDS,
+            entity_category=EntityCategory.CONFIG,
         ),
         SolarEdgeNumberDescription(
             name="Storage Remote Charge Limit",
@@ -682,6 +706,7 @@ STORAGE_NUMBER_TYPES.extend(
             fmt="f",
             attrs={"min": 0, "max": 20000},
             native_unit_of_measurement=UnitOfPower.WATT,
+            entity_category=EntityCategory.CONFIG,
         ),
         SolarEdgeNumberDescription(
             name="Storage Remote Discharge Limit",
@@ -690,6 +715,7 @@ STORAGE_NUMBER_TYPES.extend(
             fmt="f",
             attrs={"min": 0, "max": 20000},
             native_unit_of_measurement=UnitOfPower.WATT,
+            entity_category=EntityCategory.CONFIG,
         ),
     ]
 )
